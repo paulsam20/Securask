@@ -1,22 +1,17 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-// Interface defining the structure of a Task document
 export interface ITask extends Document {
+  user: mongoose.Types.ObjectId;
   title: string;
   description: string;
-  completed: boolean;
-  user: mongoose.Types.ObjectId; // Reference to the User model
-  createdAt: Date;
+  status: 'pending' | 'completed';
 }
 
-const TaskSchema: Schema = new Schema(
-  {
-    title: { type: String, required: true, trim: true },
-    description: { type: String, required: true },
-    completed: { type: Boolean, default: false },
-    user: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // For Auth
-  },
-  { timestamps: true }
-);
+const TaskSchema: Schema = new Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' },
+  title: { type: String, required: true },
+  description: { type: String },
+  status: { type: String, enum: ['pending', 'completed'], default: 'pending' }
+}, { timestamps: true });
 
 export default mongoose.model<ITask>('Task', TaskSchema);
