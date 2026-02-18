@@ -3,10 +3,14 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import { authService } from './services/auth';
 
+import RegisterPage from './pages/RegisterPage';
+import ThemeToggle from './components/ThemeToggle';
+import ParticleBackground from './components/ParticleBackground';
+
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState('');
-  const [user, setUser] = useState<any>(null);
+  const [currentPage, setCurrentPage] = useState<'login' | 'register'>('login');
 
   useEffect(() => {
     // Check if user is already logged in
@@ -18,9 +22,8 @@ function App() {
     }
   }, []);
 
-  const handleLogin = (email: string, userData: any) => {
+  const handleLogin = (email: string) => {
     setUserEmail(email);
-    setUser(userData);
     setIsLoggedIn(true);
   };
 
@@ -28,16 +31,25 @@ function App() {
     authService.removeToken();
     setIsLoggedIn(false);
     setUserEmail('');
-    setUser(null);
+    setCurrentPage('login');
   };
 
   return (
     <>
-      {isLoggedIn ? (
-        <DashboardPage userEmail={userEmail} onLogout={handleLogout} />
-      ) : (
-        <LoginPage onLogin={handleLogin} />
-      )}
+      <ThemeToggle />
+      <ParticleBackground />
+      <div className="relative z-10 w-full min-h-screen">
+        {isLoggedIn ? (
+          <DashboardPage userEmail={userEmail} onLogout={handleLogout} />
+        ) : currentPage === 'login' ? (
+          <LoginPage
+            onLogin={handleLogin}
+            onSwitchToRegister={() => setCurrentPage('register')}
+          />
+        ) : (
+          <RegisterPage onSwitchToLogin={() => setCurrentPage('login')} />
+        )}
+      </div>
     </>
   );
 }

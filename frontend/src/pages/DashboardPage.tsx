@@ -121,7 +121,7 @@ export default function DashboardPage({ userEmail, onLogout }: DashboardPageProp
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       <Sidebar userEmail={userEmail} onLogout={onLogout} />
 
       <main className="flex-1 overflow-auto">
@@ -129,17 +129,17 @@ export default function DashboardPage({ userEmail, onLogout }: DashboardPageProp
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col gap-4 mb-8 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-                <p className="text-gray-600 mt-1">Welcome back, {userEmail.split('@')[0]}</p>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white transition-colors">Dashboard</h1>
+                <p className="text-gray-600 dark:text-gray-400 mt-1 transition-colors">Welcome back, {userEmail.split('@')[0]}</p>
               </div>
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                  <p className="text-sm text-red-600">{error}</p>
+                <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                  <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
                 </div>
               )}
               <button
                 onClick={() => setShowNewTask(true)}
-                className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-6 py-3 rounded-lg flex items-center gap-2 transition w-full lg:w-auto justify-center"
+                className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-6 py-3 rounded-lg flex items-center gap-2 transition w-full lg:w-auto justify-center shadow-lg shadow-primary-500/30"
               >
                 <Plus className="w-5 h-5" />
                 New Task
@@ -147,12 +147,12 @@ export default function DashboardPage({ userEmail, onLogout }: DashboardPageProp
             </div>
 
             {showNewTask && (
-              <div className="bg-white rounded-lg shadow-md p-6 mb-8 border border-primary-200">
-                <h2 className="text-lg font-bold text-gray-900 mb-4">Create New Task</h2>
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8 border border-primary-200 dark:border-primary-800 transition-colors duration-300">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Create New Task</h2>
                 <form onSubmit={handleAddTask}>
                   <div className="grid gap-4 md:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         Task Title
                       </label>
                       <input
@@ -162,31 +162,33 @@ export default function DashboardPage({ userEmail, onLogout }: DashboardPageProp
                           setNewTask({ ...newTask, title: e.target.value })
                         }
                         placeholder="Enter task title"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         Priority
                       </label>
-                      <select
-                        value={newTask.priority}
-                        onChange={(e) =>
-                          setNewTask({
-                            ...newTask,
-                            priority: e.target.value as 'high' | 'medium' | 'low',
-                          })
-                        }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                      >
-                        <option value="low">Low</option>
-                        <option value="medium">Medium</option>
-                        <option value="high">High</option>
-                      </select>
+                      <div className="relative">
+                        <select
+                          value={newTask.priority}
+                          onChange={(e) =>
+                            setNewTask({
+                              ...newTask,
+                              priority: e.target.value as 'high' | 'medium' | 'low',
+                            })
+                          }
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors appearance-none"
+                        >
+                          <option value="low">Low</option>
+                          <option value="medium">Medium</option>
+                          <option value="high">High</option>
+                        </select>
+                      </div>
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         Description
                       </label>
                       <textarea
@@ -195,12 +197,12 @@ export default function DashboardPage({ userEmail, onLogout }: DashboardPageProp
                           setNewTask({ ...newTask, description: e.target.value })
                         }
                         placeholder="Enter task description (optional)"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
                         rows={2}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         Due Date
                       </label>
                       <input
@@ -210,21 +212,21 @@ export default function DashboardPage({ userEmail, onLogout }: DashboardPageProp
                           setNewTask({ ...newTask, dueDate: e.target.value })
                         }
                         placeholder="e.g., Mar 20"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
                       />
                     </div>
                   </div>
                   <div className="flex gap-3 mt-4">
                     <button
                       type="submit"
-                      className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-6 py-2 rounded-lg transition"
+                      className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-6 py-2 rounded-lg transition shadow-lg shadow-primary-500/30"
                     >
                       Add Task
                     </button>
                     <button
                       type="button"
                       onClick={() => setShowNewTask(false)}
-                      className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold px-6 py-2 rounded-lg transition"
+                      className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold px-6 py-2 rounded-lg transition"
                     >
                       Cancel
                     </button>
@@ -235,7 +237,7 @@ export default function DashboardPage({ userEmail, onLogout }: DashboardPageProp
 
             {isLoading ? (
               <div className="text-center py-12">
-                <p className="text-gray-600">Loading tasks...</p>
+                <p className="text-gray-600 dark:text-gray-400">Loading tasks...</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
