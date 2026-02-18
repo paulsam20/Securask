@@ -1,27 +1,8 @@
-import express from 'express';
-import { registerUser, loginUser } from '../controllers/authController';
+import { Router } from 'express';
+import { register, login } from '../controllers/authController';
+const router = Router();
 
-const router = express.Router();
-
-/**
- * @swagger
- * /api/auth/register:
- * post:
- * summary: Register User
- * tags: [Auth]
- * requestBody:
- * content:
- * application/json:
- * schema:
- * type: object
- * properties:
- * username: {type: string}
- * password: {type: string}
- * responses:
- * 201:
- * description: Success
- */
-router.post('/register', registerUser);
-router.post('/login', loginUser);
+router.post('/register', register);
+router.post('/login', login);
 
 export default router;
