@@ -1,128 +1,95 @@
-import React from "react";
-import { motion } from "framer-motion";
-import type {
-  DraggableProvidedDraggableProps,
-  DraggableProvidedDragHandleProps,
-} from "@hello-pangea/dnd";
-import { Trash2, Calendar, Flag } from "lucide-react";
-import type { Task, TaskPriority } from "../types/task";
+import { Trash2, Edit2, CheckCircle2, Clock } from 'lucide-react';
 
 interface TaskCardProps {
-  task: Task;
+  id: string;
+  title: string;
+  description?: string;
+  priority?: 'high' | 'medium' | 'low';
+  dueDate?: string;
+  status: 'active' | 'progress' | 'completed';
   onDelete: (id: string) => void;
-  innerRef?: React.Ref<HTMLDivElement>;
-  draggableProps?: DraggableProvidedDraggableProps;
-  dragHandleProps?: DraggableProvidedDragHandleProps | null;
+  onStatusChange?: (id: string, newStatus: 'active' | 'progress' | 'completed') => void;
 }
 
-const priorityColors: Record<
-  TaskPriority,
-  { bg: string; text: string; border: string; badge: string }
-> = {
-  low: {
-    bg: "bg-white",
-    text: "text-blue-600",
-    border: "border-neutral-200",
-    badge: "bg-blue-50 text-blue-600",
-  },
-  medium: {
-    bg: "bg-white",
-    text: "text-amber-600",
-    border: "border-neutral-200",
-    badge: "bg-amber-50 text-amber-600",
-  },
-  high: {
-    bg: "bg-white",
-    text: "text-red-600",
-    border: "border-neutral-200",
-    badge: "bg-red-50 text-red-600",
-  },
+const priorityColors = {
+  high: 'bg-red-100 text-red-700',
+  medium: 'bg-yellow-100 text-yellow-700',
+  low: 'bg-green-100 text-green-700',
 };
 
-export const TaskCard: React.FC<TaskCardProps> = ({
-  task,
-  onDelete,
-  innerRef,
-  draggableProps,
-  dragHandleProps,
-}) => {
-  const priorityColor = priorityColors[task.priority];
-  const isOverdue =
-    new Date(task.dueDate) < new Date() && task.status !== "completed";
+const statusIcons = {
+  active: { bg: 'bg-blue-50', border: 'border-blue-200' },
+  progress: { bg: 'bg-amber-50', border: 'border-amber-200' },
+  completed: { bg: 'bg-green-50', border: 'border-green-200' },
+};
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
+export default function TaskCard({
+  id,
+  title,
+  description,
+  priority = 'medium',
+  dueDate,
+  status,
+  onDelete,
+  onStatusChange,
+}: TaskCardProps) {
+  const statusConfig = statusIcons[status];
+
+  const getNextStatus = () => {
+    const statuses: ('active' | 'progress' | 'completed')[] = ['active', 'progress', 'completed'];
+    const currentIndex = statuses.indexOf(status);
+    return statuses[(currentIndex + 1) % statuses.length];
   };
 
   return (
     <div
-      ref={innerRef}
-      {...draggableProps}
-      {...dragHandleProps}
-      className="mb-3"
-      style={{ ...draggableProps?.style }}
+      className={`${statusConfig.bg} border ${statusConfig.border} rounded-lg p-4 hover:shadow-md transition`}
     >
-      <motion.div
-        layout
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 20 }}
-        className={`${priorityColor.bg} border ${priorityColor.border} rounded-xl p-4 cursor-move group card-hover shadow-sm`}
-        whileHover={{ scale: 1.02 }}
-        transition={{ duration: 0.2 }}
-      >
-        {/* Card header */}
-        <div className="flex items-start justify-between mb-3">
-          <h3 className="text-sm font-semibold text-black flex-1 break-words">
-            {task.title}
-          </h3>
-          <motion.button
-            onClick={() => onDelete(task.id)}
-            whileHover={{ scale: 1.1, rotate: 90 }}
-            whileTap={{ scale: 0.95 }}
-            className="ml-2 p-1 rounded-lg hover:bg-red-50 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            <Trash2 size={16} />
-          </motion.button>
-        </div>
-
-        {/* Description */}
-        {task.description && (
-          <p className="text-xs text-neutral-400 mb-3 line-clamp-2">
-            {task.description}
-          </p>
-        )}
-
-        {/* Priority badge */}
-        <div className="mb-3 flex items-center gap-2">
-          <div
-            className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold ${priorityColor.badge}`}
-          >
-            <Flag size={12} />
-            {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-start gap-3 flex-1">
+          <div className="flex-1">
+            <h3 className="font-semibold text-gray-900">{title}</h3>
+            {description && (
+              <p className="text-sm text-gray-600 mt-1">{description}</p>
+            )}
           </div>
-          {isOverdue && (
-            <div className="px-2 py-1 rounded-lg text-xs font-semibold bg-red-50 text-red-500">
-              Overdue
-            </div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          {priority && (
+            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${priorityColors[priority]}`}>
+              {priority.charAt(0).toUpperCase() + priority.slice(1)}
+            </span>
+          )}
+          {dueDate && (
+            <span className="text-xs text-gray-600 flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5" />
+              {dueDate}
+            </span>
           )}
         </div>
 
-        {/* Due date */}
-        <div className="flex items-center gap-2 text-xs text-neutral-400 font-medium">
-          <Calendar size={14} />
-          <span
-            className={
-              isOverdue && task.status !== "completed" ? "text-red-500" : ""
-            }
+        <div className="flex items-center gap-2">
+          {onStatusChange && status !== 'completed' && (
+            <button
+              onClick={() => onStatusChange(id, getNextStatus())}
+              className="p-1.5 hover:bg-white rounded-md transition"
+              title="Move to next status"
+            >
+              <CheckCircle2 className="w-4 h-4 text-gray-600 hover:text-primary-600" />
+            </button>
+          )}
+          <button
+            onClick={() => onDelete(id)}
+            className="p-1.5 hover:bg-white rounded-md transition"
+            title="Delete task"
           >
-            {formatDate(task.dueDate)}
-          </span>
+            <Trash2 className="w-4 h-4 text-gray-600 hover:text-red-600" />
+          </button>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
-};
+}

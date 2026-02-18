@@ -1,185 +1,92 @@
-import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Mail, Lock, Eye, EyeOff, LogIn } from "lucide-react";
-import { Background } from "../components/Background";
-import { AuthContext } from "../context/AuthContext";
+import { useState } from 'react';
+import { CheckCircle } from 'lucide-react';
+import { authAPI } from '../services/api';
+import { authService } from '../services/auth';
 
-export default function LoginPage() {
-  const { login } = React.useContext(AuthContext);
-  const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+interface LoginPageProps {
+  onLogin: (email: string, user: any) => void;
+}
+
+export default function LoginPage({ onLogin }: LoginPageProps) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    try {
-      await login(email, password);
-      navigate("/dashboard");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
-    } finally {
-      setLoading(false);
+    if (email && password) {
+      setIsLoading(true);
+      setError('');
+      try {
+        const response = await authAPI.login(email, password);
+        authService.setToken(response.token);
+        onLogin(email, response.user);
+      } catch (err: any) {
+        setError(err.message || 'Login failed. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-        delayChildren: 0.3,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.6, ease: [0.42, 0, 0.58, 1] },
-    },
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
-      <Background />
-
-      <motion.div
-        className="relative z-10 w-full max-w-md px-6"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        {/* Card */}
-        <motion.div
-          className="bg-slate-800/40 backdrop-blur-xl border border-blue-500/20 rounded-2xl p-8 shadow-2xl"
-          variants={itemVariants}
-          whileHover={{ boxShadow: "0 0 40px rgba(59, 130, 246, 0.2)" }}
-        >
-          {/* Header */}
-          <motion.div className="text-center mb-8" variants={itemVariants}>
-            <motion.h1
-              className="text-4xl font-bold gradient-text mb-2"
-              animate={{ y: [0, -5, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              Securask
-            </motion.h1>
-            <p className="text-slate-400 text-sm">Task Management System</p>
-          </motion.div>
-
-          {/* Error message */}
-          <motion.div variants={itemVariants}>
-            {error && (
-              <motion.div
-                className="mb-4 p-4 bg-red-900/30 border border-red-500/50 rounded-lg text-red-200 text-sm"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                {error}
-              </motion.div>
-            )}
-          </motion.div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email field */}
-            <motion.div variants={itemVariants}>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3.5 text-blue-400" size={20} />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className="w-full pl-10 pr-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 text-slate-100 placeholder-slate-500 transition-all duration-300"
-                  required
-                />
-              </div>
-            </motion.div>
-
-            {/* Password field */}
-            <motion.div variants={itemVariants}>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3.5 text-blue-400" size={20} />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full pl-10 pr-10 py-3 bg-slate-700/50 border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 text-slate-100 placeholder-slate-500 transition-all duration-300"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3.5 text-slate-400 hover:text-blue-400 transition-colors"
-                >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-              </div>
-            </motion.div>
-
-            {/* Submit button */}
-            <motion.button
-              type="submit"
-              disabled={loading}
-              variants={itemVariants}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-blue-500/50"
-            >
-              <LogIn size={20} />
-              {loading ? "Signing in..." : "Sign In"}
-            </motion.button>
-          </form>
-
-          {/* Divider */}
-          <motion.div className="my-6 relative" variants={itemVariants}>
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-600" />
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="mb-8 text-center">
+          <div className="flex justify-center mb-4">
+            <div className="bg-primary-500 p-3 rounded-lg">
+              <CheckCircle className="w-8 h-8 text-white" />
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-slate-800/40 text-slate-400">
-                New to Securask?
-              </span>
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Securask</h1>
+          <p className="text-gray-600">Organize your work, achieve your goals</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl p-8">
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Email Address
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
+              required
+            />
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
+              required
+            />
+          </div>
+
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-600">{error}</p>
             </div>
-          </motion.div>
+          )}
 
-          {/* Register link */}
-          <motion.div variants={itemVariants} className="text-center">
-            <Link
-              to="/register"
-              className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
-            >
-              Create an account
-            </Link>
-          </motion.div>
-        </motion.div>
-
-        {/* Bottom decoration */}
-        <motion.div
-          className="mt-8 text-center text-slate-500 text-sm"
-          variants={itemVariants}
-        >
-          <p>Secure task management, simplified</p>
-        </motion.div>
-      </motion.div>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold py-3 rounded-lg transition duration-200 disabled:opacity-50"
+          >
+            {isLoading ? 'Signing in...' : 'Sign In'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

@@ -1,30 +1,44 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { AuthContext } from "./context/AuthContext";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import Dashboard from "./pages/Dashboard";
+import { useState, useEffect } from 'react';
+import LoginPage from './pages/LoginPage';
+import DashboardPage from './pages/DashboardPage';
+import { authService } from './services/auth';
 
 function App() {
-  const { user } = React.useContext(AuthContext);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    // Check if user is already logged in
+    if (authService.isAuthenticated()) {
+      // You could fetch user info here if needed
+      setIsLoggedIn(true);
+      // For now, we'll use a placeholder email
+      setUserEmail('user@example.com');
+    }
+  }, []);
+
+  const handleLogin = (email: string, userData: any) => {
+    setUserEmail(email);
+    setUser(userData);
+    setIsLoggedIn(true);
+  };
+
+  const handleLogout = () => {
+    authService.removeToken();
+    setIsLoggedIn(false);
+    setUserEmail('');
+    setUser(null);
+  };
 
   return (
-    <Router>
-      <Routes>
-        {user ? (
-          <>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          </>
-        ) : (
-          <>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/" element={<Navigate to="/login" replace />} />
-          </>
-        )}
-      </Routes>
-    </Router>
+    <>
+      {isLoggedIn ? (
+        <DashboardPage userEmail={userEmail} onLogout={handleLogout} />
+      ) : (
+        <LoginPage onLogin={handleLogin} />
+      )}
+    </>
   );
 }
 
