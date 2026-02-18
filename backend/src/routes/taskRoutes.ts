@@ -1,14 +1,15 @@
 import express from 'express';
-import { getTasks, createTask, deleteTask, updateTask } from '../controllers/taskController';
-import { protect } from '../middleware/authMiddleware';
+import { getTasks, getTaskById, createTask, updateTask, deleteTask } from '../controllers/taskController';
+import { protect } from '../middleware/authMiddleware'; // Assuming this is your auth guard
 
 const router = express.Router();
-//routes for /api/tasks
+
 router.route('/')
   .get(protect, getTasks)
   .post(protect, createTask);
-// routes for /api/tasks/:id
+
 router.route('/:id')
+  .get(protect, getTaskById)
   .put(protect, updateTask)
   .delete(protect, deleteTask);
 

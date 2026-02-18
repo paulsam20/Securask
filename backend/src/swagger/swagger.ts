@@ -87,6 +87,24 @@ const options = {
         },
       },
       '/api/tasks/{id}': {
+        get: {
+          tags: ['Tasks'],
+          summary: 'Get a single task by ID',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              schema: { type: 'string' },
+              description: 'The Task ID',
+            },
+          ],
+          responses: { 
+            200: { description: 'Success' },
+            404: { description: 'Task not found' }
+          },
+        },
         put: {
           tags: ['Tasks'],
           summary: 'Update a task',
