@@ -1,29 +1,52 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Mail, Lock, Eye, EyeOff, LogIn } from "lucide-react";
+import { User, Mail, Lock, Eye, EyeOff, UserPlus } from "lucide-react";
 import { Background } from "../components/Background";
 import { AuthContext } from "../context/AuthContext";
 
-export default function LoginPage() {
-  const { login } = React.useContext(AuthContext);
+export default function RegisterPage() {
+  const { register } = React.useContext(AuthContext);
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await login(email, password);
+      await register(formData.name, formData.email, formData.password);
       navigate("/dashboard");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      setError(err instanceof Error ? err.message : "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -45,12 +68,12 @@ export default function LoginPage() {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.6, ease: [0.42, 0, 0.58, 1] },
+      transition: { duration: 0.6, ease: "easeOut" },
     },
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden py-12">
       <Background />
 
       <motion.div
@@ -74,7 +97,7 @@ export default function LoginPage() {
             >
               Securask
             </motion.h1>
-            <p className="text-slate-400 text-sm">Task Management System</p>
+            <p className="text-slate-400 text-sm">Create Your Account</p>
           </motion.div>
 
           {/* Error message */}
@@ -92,6 +115,25 @@ export default function LoginPage() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Name field */}
+            <motion.div variants={itemVariants}>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Full Name
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-3.5 text-blue-400" size={20} />
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="John Doe"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 text-slate-100 placeholder-slate-500 transition-all duration-300"
+                  required
+                />
+              </div>
+            </motion.div>
+
             {/* Email field */}
             <motion.div variants={itemVariants}>
               <label className="block text-sm font-medium text-slate-300 mb-2">
@@ -101,8 +143,9 @@ export default function LoginPage() {
                 <Mail className="absolute left-3 top-3.5 text-blue-400" size={20} />
                 <input
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
                   placeholder="you@example.com"
                   className="w-full pl-10 pr-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 text-slate-100 placeholder-slate-500 transition-all duration-300"
                   required
@@ -119,8 +162,9 @@ export default function LoginPage() {
                 <Lock className="absolute left-3 top-3.5 text-blue-400" size={20} />
                 <input
                   type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
                   placeholder="••••••••"
                   className="w-full pl-10 pr-10 py-3 bg-slate-700/50 border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 text-slate-100 placeholder-slate-500 transition-all duration-300"
                   required
@@ -135,6 +179,32 @@ export default function LoginPage() {
               </div>
             </motion.div>
 
+            {/* Confirm Password field */}
+            <motion.div variants={itemVariants}>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3.5 text-blue-400" size={20} />
+                <input
+                  type={showConfirm ? "text" : "password"}
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  className="w-full pl-10 pr-10 py-3 bg-slate-700/50 border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 text-slate-100 placeholder-slate-500 transition-all duration-300"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm(!showConfirm)}
+                  className="absolute right-3 top-3.5 text-slate-400 hover:text-blue-400 transition-colors"
+                >
+                  {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+            </motion.div>
+
             {/* Submit button */}
             <motion.button
               type="submit"
@@ -144,8 +214,8 @@ export default function LoginPage() {
               whileTap={{ scale: 0.98 }}
               className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-blue-500/50"
             >
-              <LogIn size={20} />
-              {loading ? "Signing in..." : "Sign In"}
+              <UserPlus size={20} />
+              {loading ? "Creating Account..." : "Create Account"}
             </motion.button>
           </form>
 
@@ -156,18 +226,18 @@ export default function LoginPage() {
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-2 bg-slate-800/40 text-slate-400">
-                New to Securask?
+                Already have an account?
               </span>
             </div>
           </motion.div>
 
-          {/* Register link */}
+          {/* Login link */}
           <motion.div variants={itemVariants} className="text-center">
             <Link
-              to="/register"
+              to="/login"
               className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
             >
-              Create an account
+              Sign in here
             </Link>
           </motion.div>
         </motion.div>
