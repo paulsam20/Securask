@@ -10,7 +10,12 @@ import calendarTaskRoutes from './routes/calendarTaskRoutes';
 const app = express();
 
 // 1. global middleware
-app.use(cors()); // Must be above routes to prevent "CORS Error" in browser
+app.use(cors({
+  origin: true, // Reflects the request origin, allowing any domain to access
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+}));
 app.use(express.json());
 
 // 2. documentation
