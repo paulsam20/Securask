@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { Plus } from 'lucide-react';
 import { DragDropContext, DropResult } from '@hello-pangea/dnd';
 import Sidebar from '../components/Sidebar';
@@ -43,6 +43,7 @@ export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false
   const [showNewTask, setShowNewTask] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [now, setNow] = useState(() => new Date());
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
@@ -52,6 +53,11 @@ export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false
 
   useEffect(() => {
     fetchTasks();
+  }, []);
+
+  useEffect(() => {
+    const t = window.setInterval(() => setNow(new Date()), 1000);
+    return () => window.clearInterval(t);
   }, []);
 
   const fetchTasks = async () => {
@@ -72,6 +78,16 @@ export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false
   const activeTasks = tasks.filter((t) => t.status === 'active');
   const progressTasks = tasks.filter((t) => t.status === 'progress');
   const completedTasks = tasks.filter((t) => t.status === 'completed');
+  const pendingCount = activeTasks.length + progressTasks.length;
+
+  const priorityCounts = useMemo(() => {
+    const counts = { high: 0, medium: 0, low: 0 } as { high: number; medium: number; low: number };
+    for (const t of tasks) {
+      const p = (t.priority ?? 'medium') as 'high' | 'medium' | 'low';
+      counts[p] += 1;
+    }
+    return counts;
+  }, [tasks]);
 
   // ── Drag & Drop ────────────────────────────────────────────────────────────
   const onDragEnd = useCallback(
@@ -173,6 +189,12 @@ export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen((o) => !o)}
         hideToggle={isNotesOpen}
+        counts={{
+          active: activeTasks.length,
+          progress: progressTasks.length,
+          completed: completedTasks.length,
+          priority: priorityCounts,
+        }}
       />
 
       <main
@@ -180,7 +202,7 @@ export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false
           sidebarOpen ? 'lg:pl-[280px]' : 'lg:pl-14'
         }`}
       >
-        <div className="pt-16 lg:pt-0 px-6 lg:px-8 py-8">
+        <div className="pt-16 lg:pt-0 px-6 lg:px-8 py-8 pb-24">
           <div className="max-w-7xl mx-auto">
 
             {/* Header */}
@@ -207,6 +229,33 @@ export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false
                 <Plus className="w-5 h-5" />
                 New Task
               </button>
+            </div>
+
+            {/* Daily Summary */}
+            <div className="mb-6">
+              <div className="rounded-2xl border border-gray-200/70 dark:border-gray-800/70 bg-white/75 dark:bg-gray-900/40 backdrop-blur-md p-5 shadow-sm">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                      Good {now.getHours() < 12 ? 'morning' : now.getHours() < 18 ? 'afternoon' : 'evening'}, {userEmail.split('@')[0]}.
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      You have <span className="font-semibold text-primary-700 dark:text-primary-300">{pendingCount}</span> pending task{pendingCount === 1 ? '' : 's'} left today.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-xl px-4 py-3 bg-gradient-to-br from-primary-500/10 to-violet-500/10 dark:from-primary-400/10 dark:to-violet-400/10 border border-primary-200/40 dark:border-primary-800/40">
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400">Completion</p>
+                      <p className="text-xl font-extrabold text-gray-900 dark:text-white leading-tight">{progressPercent}%</p>
+                    </div>
+                    <div className="rounded-xl px-4 py-3 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 dark:from-emerald-400/10 dark:to-teal-400/10 border border-emerald-200/40 dark:border-emerald-800/40">
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400">Completed</p>
+                      <p className="text-xl font-extrabold text-gray-900 dark:text-white leading-tight">{completedTasks.length}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Progress bar */}
@@ -341,6 +390,23 @@ export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false
 
           </div>
         </div>
+
+        {/* Footer - real-time date/day/year */}
+        <footer className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none">
+          <div className={`mx-auto max-w-7xl px-6 lg:px-8 pb-5 ${
+            sidebarOpen ? 'lg:pl-[280px]' : 'lg:pl-14'
+          } transition-[padding] duration-300`}>
+            <div className="pointer-events-auto inline-flex items-center gap-2 rounded-full px-4 py-2 bg-white/70 dark:bg-gray-900/45 border border-gray-200/70 dark:border-gray-800/70 backdrop-blur-md shadow-sm text-sm text-gray-700 dark:text-gray-300">
+              <span className="font-medium">
+                {now.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              </span>
+              <span className="text-gray-400 dark:text-gray-500">•</span>
+              <span className="tabular-nums">
+                {now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              </span>
+            </div>
+          </div>
+        </footer>
       </main>
     </div>
   );

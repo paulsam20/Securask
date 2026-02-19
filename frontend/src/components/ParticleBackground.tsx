@@ -11,6 +11,8 @@ interface Particle {
     pulseSpeed: number;
     pulsePhase: number;
     color: string;
+    kind: 'dot' | 'star';
+    sparkle: number;
 }
 
 export default function ParticleBackground() {
@@ -67,6 +69,8 @@ export default function ParticleBackground() {
                     pulseSpeed: Math.random() * 0.015 + 0.003,
                     pulsePhase: Math.random() * Math.PI * 2,
                     color: colors[Math.floor(Math.random() * colors.length)],
+                    kind: Math.random() < 0.22 ? 'star' : 'dot',
+                    sparkle: Math.random(),
                 });
             }
         };
@@ -77,12 +81,14 @@ export default function ParticleBackground() {
 
             particles.forEach((p) => {
                 const pulse = Math.sin(frame * p.pulseSpeed + p.pulsePhase) * 0.08;
-                const alpha = Math.min(0.6, Math.max(0.12, p.opacity + pulse));
+                const twinkle = Math.sin(frame * (p.pulseSpeed * 1.7) + p.pulsePhase * 1.3) * 0.06;
+                const alpha = Math.min(0.75, Math.max(0.12, p.opacity + pulse + twinkle));
 
-                const glowRadius = p.size * 6;
+                const glowRadius = p.size * (p.kind === 'star' ? 10 : 7);
                 const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowRadius);
-                gradient.addColorStop(0, `${p.color}${(alpha * 0.5).toFixed(2)})`);
-                gradient.addColorStop(0.5, `${p.color}${(alpha * 0.15).toFixed(2)})`);
+                gradient.addColorStop(0, `rgba(255,255,255,${(alpha * 0.35).toFixed(2)})`);
+                gradient.addColorStop(0.15, `${p.color}${(alpha * 0.45).toFixed(2)})`);
+                gradient.addColorStop(0.55, `${p.color}${(alpha * 0.12).toFixed(2)})`);
                 gradient.addColorStop(1, `${p.color}0)`);
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, glowRadius, 0, Math.PI * 2);
@@ -91,8 +97,27 @@ export default function ParticleBackground() {
 
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                ctx.fillStyle = `${p.color}${alpha.toFixed(2)})`;
+                ctx.fillStyle = `rgba(255,255,255,${Math.min(0.95, alpha + 0.15).toFixed(2)})`;
                 ctx.fill();
+
+                // "Star" sparkle cross (subtle, Apple-like)
+                if (p.kind === 'star') {
+                    const s = p.size * (8 + p.sparkle * 8);
+                    const glow = Math.min(0.7, alpha * (0.35 + p.sparkle * 0.35));
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate((p.pulsePhase / 2) + frame * 0.002);
+                    ctx.strokeStyle = `rgba(255,255,255,${glow.toFixed(2)})`;
+                    ctx.lineWidth = 0.9;
+                    ctx.lineCap = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(-s, 0);
+                    ctx.lineTo(s, 0);
+                    ctx.moveTo(0, -s);
+                    ctx.lineTo(0, s);
+                    ctx.stroke();
+                    ctx.restore();
+                }
 
                 // Update position
                 p.x += p.dx;

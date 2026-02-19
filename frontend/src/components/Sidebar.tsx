@@ -6,9 +6,15 @@ interface SidebarProps {
   isOpen: boolean;
   onToggle: () => void;
   hideToggle?: boolean;
+  counts?: {
+    active: number;
+    progress: number;
+    completed: number;
+    priority: { high: number; medium: number; low: number };
+  };
 }
 
-export default function Sidebar({ userEmail, onLogout, isOpen, onToggle, hideToggle = false }: SidebarProps) {
+export default function Sidebar({ userEmail, onLogout, isOpen, onToggle, hideToggle = false, counts }: SidebarProps) {
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard' },
@@ -58,6 +64,47 @@ export default function Sidebar({ userEmail, onLogout, isOpen, onToggle, hideTog
                     </li>
                   ))}
                 </ul>
+
+                {counts && (
+                  <div className="mt-6 px-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">
+                      Overview
+                    </p>
+
+                    <div className="grid grid-cols-3 gap-2 mb-4">
+                      <div className="rounded-lg border border-blue-200/60 dark:border-blue-900/40 bg-blue-50/70 dark:bg-blue-900/20 px-2 py-2">
+                        <p className="text-[10px] text-gray-500 dark:text-gray-400">Active</p>
+                        <p className="text-lg font-bold text-blue-700 dark:text-blue-300 leading-tight">{counts.active}</p>
+                      </div>
+                      <div className="rounded-lg border border-amber-200/60 dark:border-amber-900/40 bg-amber-50/70 dark:bg-amber-900/20 px-2 py-2">
+                        <p className="text-[10px] text-gray-500 dark:text-gray-400">Progress</p>
+                        <p className="text-lg font-bold text-amber-700 dark:text-amber-300 leading-tight">{counts.progress}</p>
+                      </div>
+                      <div className="rounded-lg border border-green-200/60 dark:border-green-900/40 bg-green-50/70 dark:bg-green-900/20 px-2 py-2">
+                        <p className="text-[10px] text-gray-500 dark:text-gray-400">Done</p>
+                        <p className="text-lg font-bold text-green-700 dark:text-green-300 leading-tight">{counts.completed}</p>
+                      </div>
+                    </div>
+
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">
+                      Priority
+                    </p>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between rounded-lg px-3 py-2 bg-white/60 dark:bg-gray-900/30 border border-gray-200/60 dark:border-gray-800/60">
+                        <span className="text-xs font-medium text-gray-600 dark:text-gray-300">High</span>
+                        <span className="text-xs font-semibold text-red-600 dark:text-red-400">{counts.priority.high}</span>
+                      </div>
+                      <div className="flex items-center justify-between rounded-lg px-3 py-2 bg-white/60 dark:bg-gray-900/30 border border-gray-200/60 dark:border-gray-800/60">
+                        <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Medium</span>
+                        <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">{counts.priority.medium}</span>
+                      </div>
+                      <div className="flex items-center justify-between rounded-lg px-3 py-2 bg-white/60 dark:bg-gray-900/30 border border-gray-200/60 dark:border-gray-800/60">
+                        <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Low</span>
+                        <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">{counts.priority.low}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </nav>
 
               <div className="border-t border-gray-200 dark:border-gray-700 pt-4 flex-shrink-0">
