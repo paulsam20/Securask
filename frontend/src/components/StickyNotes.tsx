@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StickyNote, Plus, ChevronRight, ChevronDown, X, Palette } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { stickyNotesAPI } from '../services/api';
@@ -250,7 +250,7 @@ export default function StickyNotes({
                               rounded-xl border
                               ${noteCardClasses[note.color]}
                               shadow-sm px-3 py-2 text-sm text-gray-800 dark:text-gray-100
-                              transition-transform transition-shadow duration-150
+                              transition-all duration-150
                               ${snapshotDraggable.isDragging ? 'shadow-lg scale-[1.02]' : ''}
                             `}
                           >

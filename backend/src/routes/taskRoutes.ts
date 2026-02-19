@@ -3,7 +3,7 @@ import { getTasks, getTaskById, createTask, updateTask, deleteTask } from '../co
 import { protect } from '../middleware/authMiddleware'; // Assuming this is your auth guard
 
 const router = express.Router();
-
+// task routes
 router.route('/')
   .get(protect, getTasks)
   .post(protect, createTask);

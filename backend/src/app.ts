@@ -1,5 +1,5 @@
 import express from 'express';
-import cors from 'cors'; // Added this
+import cors from 'cors'; // lets backend communicate with frontend
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './swagger/swagger';
 import authRoutes from './routes/authRoutes';
@@ -8,19 +8,19 @@ import stickyNoteRoutes from './routes/stickyNoteRoutes';
 
 const app = express();
 
-// 1. GLOBAL MIDDLEWARE
+// 1. global middleware
 app.use(cors()); // Must be above routes to prevent "CORS Error" in browser
 app.use(express.json());
 
-// 2. DOCUMENTATION
+// 2. documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// 3. ROUTES
+// 3. routes
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/sticky-notes', stickyNoteRoutes);
 
-// 4. BASE ROUTE (Optional)
+// 4. base route (optional)
 app.get('/', (req, res) => {
   res.send('Securask API is running...');
 });

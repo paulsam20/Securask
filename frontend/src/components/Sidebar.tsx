@@ -1,4 +1,4 @@
-import { Menu, X, CheckCircle, LogOut } from 'lucide-react';
+import { Menu, X, CheckCircle, LogOut, Calendar } from 'lucide-react';
 
 interface SidebarProps {
   userEmail: string;
@@ -12,26 +12,28 @@ interface SidebarProps {
     completed: number;
     priority: { high: number; medium: number; low: number };
   };
+  onNavigate?: (page: string) => void;
+  currentPage?: string;
 }
 
-export default function Sidebar({ userEmail, onLogout, isOpen, onToggle, hideToggle = false, counts }: SidebarProps) {
+export default function Sidebar({ userEmail, onLogout, isOpen, onToggle, hideToggle = false, counts, onNavigate, currentPage }: SidebarProps) {
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'active', label: 'Active Tasks' },
     { id: 'progress', label: 'In Progress' },
     { id: 'completed', label: 'Completed' },
+    { id: 'calendar', label: 'Calendar', icon: 'calendar' },
   ];
 
   return (
     <>
-      {!hideToggle && (
+      {!hideToggle && !isOpen && (
         <button
           onClick={onToggle}
-          className={`fixed top-4 z-50 bg-primary-500 text-white p-2 rounded-lg hover:bg-primary-600 transition ${isOpen ? 'left-[292px]' : 'left-4'
-            }`}
+          className="fixed top-4 left-4 z-50 bg-primary-500 text-white p-2 rounded-lg hover:bg-primary-600 transition"
         >
-          {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          <Menu className="w-6 h-6" />
         </button>
       )}
 
@@ -41,14 +43,24 @@ export default function Sidebar({ userEmail, onLogout, isOpen, onToggle, hideTog
         style={{ width: '280px' }}
       >
         <div className="flex flex-col h-full p-6 overflow-hidden">
-          <div className="mb-8 flex items-center gap-3">
-            <div className="bg-primary-500 p-2 rounded-lg flex-shrink-0 shadow-lg shadow-primary-500/30">
-              <CheckCircle className="w-6 h-6 text-white" />
-            </div>
-            {isOpen && (
-              <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Securask</h1>
+          <div className="mb-8 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="bg-primary-500 p-2 rounded-lg flex-shrink-0 shadow-lg shadow-primary-500/30">
+                <CheckCircle className="w-6 h-6 text-white" />
               </div>
+              {isOpen && (
+                <div>
+                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">Securask</h1>
+                </div>
+              )}
+            </div>
+            {isOpen && !hideToggle && (
+              <button
+                onClick={onToggle}
+                className="p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
             )}
           </div>
 
@@ -58,7 +70,15 @@ export default function Sidebar({ userEmail, onLogout, isOpen, onToggle, hideTog
                 <ul className="space-y-2">
                   {navItems.map((item) => (
                     <li key={item.id}>
-                      <button className="w-full text-left px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-600 dark:hover:text-primary-400 transition font-medium">
+                      <button 
+                        onClick={() => onNavigate?.(item.id)}
+                        className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-2 transition font-medium ${
+                          currentPage === item.id
+                            ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
+                            : 'text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-600 dark:hover:text-primary-400'
+                        }`}
+                      >
+                        {item.icon === 'calendar' && <Calendar className="w-5 h-5 flex-shrink-0" />}
                         {item.label}
                       </button>
                     </li>

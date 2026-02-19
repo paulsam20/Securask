@@ -9,7 +9,7 @@ import {
 import { protect } from '../middleware/authMiddleware';
 
 const router = express.Router();
-
+// sticky note routes
 router.route('/').get(protect, listStickyNotes).post(protect, createStickyNote);
 router.route('/reorder').put(protect, reorderStickyNotes);
 router.route('/:id').put(protect, updateStickyNote).delete(protect, deleteStickyNote);
