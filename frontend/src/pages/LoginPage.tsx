@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { CheckCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { authAPI } from '../services/api';
 import { authService } from '../services/auth';
 
@@ -9,6 +10,22 @@ interface LoginPageProps {
 }
 
 const marqueeText = "Securask • Task Management • Secure • Efficient • Organized • Productive • ";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { y: 0, opacity: 1 },
+};
 
 export default function LoginPage({ onLogin, onSwitchToRegister }: LoginPageProps) {
   const [email, setEmail] = useState('');
@@ -40,8 +57,16 @@ export default function LoginPage({ onLogin, onSwitchToRegister }: LoginPageProp
                       bg-gradient-to-br from-primary-600 via-primary-500 to-violet-600
                       dark:from-gray-900 dark:via-primary-900 dark:to-violet-950">
         {/* Decorative blobs */}
-        <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-violet-400/20 blur-2xl" />
+        <motion.div
+          animate={{ scale: [1, 1.1, 1], rotate: [0, 90, 0] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-white/10 blur-3xl"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], rotate: [0, -45, 0] }}
+          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+          className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-violet-400/20 blur-2xl"
+        />
 
         {/* Top marquee */}
         <div className="relative z-10 overflow-hidden border-b border-white/10">
@@ -57,17 +82,25 @@ export default function LoginPage({ onLogin, onSwitchToRegister }: LoginPageProp
 
         {/* Center logo and tagline */}
         <div className="relative z-10 flex-1 flex items-center justify-center px-16">
-          <div className="text-white text-center max-w-md">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="text-white text-center max-w-md"
+          >
             <div className="flex items-center justify-center gap-3 mb-6">
-              <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+              <motion.div
+                whileHover={{ rotate: 10, scale: 1.1 }}
+                className="bg-white/20 p-3 rounded-xl backdrop-blur-sm shadow-xl"
+              >
                 <CheckCircle className="w-8 h-8 text-white" />
-              </div>
+              </motion.div>
               <span className="text-3xl font-extrabold tracking-tight">Securask</span>
             </div>
             <p className="text-primary-100 dark:text-gray-400 text-lg">
               A minimal, powerful task manager built for focused teams.
             </p>
-          </div>
+          </motion.div>
         </div>
 
         {/* Bottom marquee */}
@@ -86,23 +119,35 @@ export default function LoginPage({ onLogin, onSwitchToRegister }: LoginPageProp
       {/* ── Right form panel ── */}
       <div className="flex-1 lg:w-1/2 flex items-center justify-center p-8
                       bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-        <div className="w-full max-w-md">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="w-full max-w-md"
+        >
 
           {/* Logo (mobile only) */}
           <div className="flex lg:hidden justify-center mb-8">
-            <div className="bg-primary-500 p-3 rounded-xl shadow-lg shadow-primary-500/30">
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              className="bg-primary-500 p-3 rounded-xl shadow-lg shadow-primary-500/30"
+            >
               <CheckCircle className="w-8 h-8 text-white" />
-            </div>
+            </motion.div>
           </div>
 
-          <div className="mb-8">
+          <motion.div variants={itemVariants} className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Welcome back</h1>
             <p className="text-gray-500 dark:text-gray-400 mt-1">Sign in to your Securask account</p>
-          </div>
+          </motion.div>
 
-          <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700 transition-colors duration-300">
+          <motion.form
+            variants={itemVariants}
+            onSubmit={handleSubmit}
+            className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700 transition-colors duration-300"
+          >
 
-            <div className="mb-5">
+            <motion.div variants={itemVariants} className="mb-5">
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Email Address
               </label>
@@ -114,9 +159,9 @@ export default function LoginPage({ onLogin, onSwitchToRegister }: LoginPageProp
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                 required
               />
-            </div>
+            </motion.div>
 
-            <div className="mb-6">
+            <motion.div variants={itemVariants} className="mb-6">
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Password
               </label>
@@ -128,23 +173,29 @@ export default function LoginPage({ onLogin, onSwitchToRegister }: LoginPageProp
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                 required
               />
-            </div>
+            </motion.div>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
+              <motion.div
+                initial={{ opacity: 0, h: 0 }}
+                animate={{ opacity: 1, h: 'auto' }}
+                className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg"
+              >
                 <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-              </div>
+              </motion.div>
             )}
 
-            <button
+            <motion.button
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={isLoading}
               className="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold py-3 rounded-lg transition duration-200 disabled:opacity-50 shadow-lg shadow-primary-500/30"
             >
               {isLoading ? 'Signing in…' : 'Sign In'}
-            </button>
+            </motion.button>
 
-            <div className="mt-6 text-center">
+            <motion.div variants={itemVariants} className="mt-6 text-center">
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Don't have an account?{' '}
                 <button
@@ -155,9 +206,9 @@ export default function LoginPage({ onLogin, onSwitchToRegister }: LoginPageProp
                   Sign up
                 </button>
               </p>
-            </div>
-          </form>
-        </div>
+            </motion.div>
+          </motion.form>
+        </motion.div>
       </div>
 
     </div>
