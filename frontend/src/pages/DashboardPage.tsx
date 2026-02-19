@@ -407,14 +407,21 @@ export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false
                         <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
                           Due Date
                         </label>
-                        <div className="relative">
-                          <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <div className="relative group">
+                          <button
+                            type="button"
+                            onClick={() => (document.getElementById('task-date-input') as HTMLInputElement)?.showPicker()}
+                            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                          >
+                            <CalendarIcon className="w-4 h-4 text-primary-500" />
+                          </button>
                           <input
-                            type="text"
+                            id="task-date-input"
+                            type="date"
                             value={newTask.dueDate}
                             onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
-                            placeholder="e.g., Mar 20"
-                            className="w-full pl-11 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-all"
+                            className="w-full pl-12 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all appearance-none cursor-pointer"
+                            required
                           />
                         </div>
                       </div>

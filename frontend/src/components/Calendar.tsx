@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Clock, X, Plus, Trash2, Loader2 } from 'lucide-react';
-import { calendarTaskAPI } from '../services/api';
+import { ChevronLeft, ChevronRight, Clock, X, Plus, Trash2, Loader2, ClipboardList } from 'lucide-react';
+import { calendarTaskAPI, taskAPI } from '../services/api';
 
 interface Task {
   id: string;
@@ -9,6 +9,8 @@ interface Task {
   date: string;
   description?: string;
   completed: boolean;
+  source: 'calendar' | 'dashboard';
+  priority?: string;
 }
 
 export default function Calendar() {
@@ -34,16 +36,55 @@ export default function Calendar() {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await calendarTaskAPI.list();
-      const normalizedTasks = data.map((t: any) => ({
+
+      // Fetch both types of tasks
+      const [calendarData, dashboardData] = await Promise.all([
+        calendarTaskAPI.list(),
+        taskAPI.getTasks()
+      ]);
+
+      const normalizedCalendarTasks = calendarData.map((t: any) => ({
         id: t._id,
         title: t.title,
         time: t.time,
         date: t.date,
         description: t.description,
-        completed: t.completed
+        completed: t.completed,
+        source: 'calendar'
       }));
-      setTasks(normalizedTasks);
+
+      // Filter and normalize dashboard tasks that have a dueDate
+      const normalizedDashboardTasks = dashboardData
+        .filter((t: any) => t.dueDate)
+        .map((t: any) => {
+          // Attempt to parse dueDate "Mar 20" or similar to a comparable format "2026-03-20"
+          // For simplicity in this mockup, we assume the backend might return a parseable string or we do minimal conversion
+          // If the backend returns "YYYY-MM-DD", it's perfect. If it returns "Mar 20", we might need logic.
+          // Assuming we want to reflect them if they match the date format.
+
+          let formattedDate = t.dueDate;
+          // Basic heuristic: if it doesn't have a year, assume current year
+          if (typeof t.dueDate === 'string' && !t.dueDate.includes('-') && t.dueDate.split(' ').length >= 2) {
+            const months: Record<string, string> = { Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06', Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12' };
+            const parts = t.dueDate.split(' '); // ["Mar", "20"]
+            const month = months[parts[0]] || '01';
+            const day = parts[1].padStart(2, '0');
+            formattedDate = `2026-${month}-${day}`; // Hardcoding 2026 as per user system time
+          }
+
+          return {
+            id: t._id || t.id,
+            title: t.title,
+            time: 'All Day',
+            date: formattedDate,
+            description: t.description,
+            completed: t.status === 'completed',
+            source: 'dashboard',
+            priority: t.priority
+          };
+        });
+
+      setTasks([...normalizedCalendarTasks, ...normalizedDashboardTasks]);
     } catch (err: any) {
       setError(err.message || 'Failed to load tasks');
       console.error(err);
@@ -110,10 +151,14 @@ export default function Calendar() {
     }
   };
 
-  const handleDeleteTask = async (id: string) => {
+  const handleDeleteTask = async (task: Task) => {
     try {
-      await calendarTaskAPI.remove(id);
-      setTasks((prev) => prev.filter((t) => t.id !== id));
+      if (task.source === 'dashboard') {
+        await taskAPI.deleteTask(task.id);
+      } else {
+        await calendarTaskAPI.remove(task.id);
+      }
+      setTasks((prev) => prev.filter((t) => t.id !== task.id));
     } catch (err: any) {
       setError(err.message || 'Failed to delete task');
     }
@@ -124,9 +169,15 @@ export default function Calendar() {
     if (!task) return;
 
     try {
-      const updated = await calendarTaskAPI.update(id, { completed: !task.completed });
+      if (task.source === 'dashboard') {
+        const newStatus = !task.completed ? 'completed' : 'active';
+        await taskAPI.updateTask(id, { status: newStatus });
+      } else {
+        await calendarTaskAPI.update(id, { completed: !task.completed });
+      }
+
       setTasks((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, completed: updated.completed } : t))
+        prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
       );
     } catch (err: any) {
       setError(err.message || 'Failed to update task');
@@ -134,6 +185,12 @@ export default function Calendar() {
   };
 
   const handleEditTask = (task: Task) => {
+    if (task.source === 'dashboard') {
+      // For dashboard tasks, we might not want to edit them here or we could add full support.
+      // For now, let's just let the user know they are synced.
+      setError("Dashboard tasks can only be edited from the Dashboard page.");
+      return;
+    }
     setSelectedDate(task.date);
     setNewTask({
       title: task.title,
@@ -324,10 +381,17 @@ export default function Calendar() {
                                       >
                                         {task.title}
                                       </p>
-                                      <p className="text-xs opacity-75 flex items-center gap-1">
-                                        <Clock className="w-2.5 h-2.5" />
-                                        {task.time}
-                                      </p>
+                                      <div className="flex items-center justify-between mt-1">
+                                        <p className="text-[10px] opacity-75 flex items-center gap-1">
+                                          <Clock className="w-2.5 h-2.5" />
+                                          {task.time}
+                                        </p>
+                                        {task.source === 'dashboard' && (
+                                          <span className="flex items-center gap-0.5 text-[9px] font-bold bg-primary-200/50 dark:bg-primary-900/50 px-1 rounded text-primary-700 dark:text-primary-300 uppercase tracking-tighter">
+                                            <ClipboardList size={8} /> Sync
+                                          </span>
+                                        )}
+                                      </div>
                                     </div>
                                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition ml-1 flex-shrink-0">
                                       <button
@@ -338,7 +402,7 @@ export default function Calendar() {
                                         <Plus className="w-3 h-3" />
                                       </button>
                                       <button
-                                        onClick={() => handleDeleteTask(task.id)}
+                                        onClick={() => handleDeleteTask(task)}
                                         className="p-0.5 hover:bg-red-200 dark:hover:bg-red-900 rounded text-red-600 dark:text-red-400"
                                         title="Delete"
                                       >

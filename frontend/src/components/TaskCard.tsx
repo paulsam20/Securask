@@ -153,7 +153,7 @@ export default function TaskCard({
               {dueDate && (
                 <span className={`text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1 transition-colors ${status === 'completed' ? 'line-through' : ''}`}>
                   <Clock className="w-3.5 h-3.5" />
-                  {dueDate}
+                  {dueDate.includes('-') ? new Date(dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : dueDate}
                 </span>
               )}
             </div>
