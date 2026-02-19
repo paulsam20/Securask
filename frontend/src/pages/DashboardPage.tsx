@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Plus } from 'lucide-react';
+import { DragDropContext, DropResult } from '@hello-pangea/dnd';
 import Sidebar from '../components/Sidebar';
 import TaskSection from '../components/TaskSection';
 import { taskAPI } from '../services/api';
@@ -19,15 +20,11 @@ interface DashboardPageProps {
   onLogout: () => void;
 }
 
-// Helper function to map backend task to frontend task
+// Helper: map backend task to frontend Task
 const mapBackendTaskToFrontend = (backendTask: any): Task => {
-  // Map backend status ('pending' | 'completed') to frontend status
   let frontendStatus: 'active' | 'progress' | 'completed' = 'active';
-  if (backendTask.status === 'completed') {
-    frontendStatus = 'completed';
-  } else if (backendTask.status === 'progress') {
-    frontendStatus = 'progress';
-  }
+  if (backendTask.status === 'completed') frontendStatus = 'completed';
+  else if (backendTask.status === 'progress') frontendStatus = 'progress';
 
   return {
     id: backendTask._id || backendTask.id,
@@ -47,11 +44,10 @@ export default function DashboardPage({ userEmail, onLogout }: DashboardPageProp
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
-    priority: 'medium' as const,
+    priority: 'medium' as 'high' | 'medium' | 'low',
     dueDate: '',
   });
 
-  // Fetch tasks on component mount
   useEffect(() => {
     fetchTasks();
   }, []);
@@ -61,40 +57,72 @@ export default function DashboardPage({ userEmail, onLogout }: DashboardPageProp
       setIsLoading(true);
       setError('');
       const backendTasks = await taskAPI.getTasks();
-      // Map backend tasks to frontend format
-      const mappedTasks = Array.isArray(backendTasks)
-        ? backendTasks.map(mapBackendTaskToFrontend)
-        : [];
-      setTasks(mappedTasks);
+      const mapped = Array.isArray(backendTasks) ? backendTasks.map(mapBackendTaskToFrontend) : [];
+      setTasks(mapped);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch tasks');
-      console.error('Error fetching tasks:', err);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Derived per-column task lists (ordered)
   const activeTasks = tasks.filter((t) => t.status === 'active');
   const progressTasks = tasks.filter((t) => t.status === 'progress');
   const completedTasks = tasks.filter((t) => t.status === 'completed');
 
+  // ── Drag & Drop ────────────────────────────────────────────────────────────
+  const onDragEnd = useCallback(
+    async (result: DropResult) => {
+      const { source, destination, draggableId } = result;
+      if (!destination) return;
+
+      const srcCol = source.droppableId as 'active' | 'progress' | 'completed';
+      const destCol = destination.droppableId as 'active' | 'progress' | 'completed';
+
+      // Build ordered column snapshots
+      const cols: Record<string, Task[]> = {
+        active: [...activeTasks],
+        progress: [...progressTasks],
+        completed: [...completedTasks],
+      };
+
+      const movedTask = cols[srcCol].find((t) => t.id === draggableId);
+      if (!movedTask) return;
+
+      // Remove from source & insert into destination
+      cols[srcCol].splice(source.index, 1);
+      const updatedTask = { ...movedTask, status: destCol };
+      cols[destCol].splice(destination.index, 0, updatedTask);
+
+      // Optimistically update UI
+      setTasks([...cols.active, ...cols.progress, ...cols.completed]);
+
+      // Persist to backend only if column changed
+      if (srcCol !== destCol) {
+        try {
+          await taskAPI.updateTask(draggableId, { status: destCol });
+        } catch (err: any) {
+          setError(err.message || 'Failed to update task');
+          fetchTasks(); // revert on failure
+        }
+      }
+    },
+    [activeTasks, progressTasks, completedTasks],
+  );
+  // ──────────────────────────────────────────────────────────────────────────
+
   const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newTask.title.trim()) {
-      try {
-        setError('');
-        const createdTask = await taskAPI.createTask({
-          ...newTask,
-          status: 'active',
-        });
-        const mappedTask = mapBackendTaskToFrontend(createdTask);
-        setTasks([...tasks, mappedTask]);
-        setNewTask({ title: '', description: '', priority: 'medium', dueDate: '' });
-        setShowNewTask(false);
-      } catch (err: any) {
-        setError(err.message || 'Failed to create task');
-        console.error('Error creating task:', err);
-      }
+    if (!newTask.title.trim()) return;
+    try {
+      setError('');
+      const created = await taskAPI.createTask({ ...newTask, status: 'active' });
+      setTasks((prev) => [...prev, mapBackendTaskToFrontend(created)]);
+      setNewTask({ title: '', description: '', priority: 'medium', dueDate: '' });
+      setShowNewTask(false);
+    } catch (err: any) {
+      setError(err.message || 'Failed to create task');
     }
   };
 
@@ -102,10 +130,9 @@ export default function DashboardPage({ userEmail, onLogout }: DashboardPageProp
     try {
       setError('');
       await taskAPI.deleteTask(id);
-      setTasks(tasks.filter((t) => t.id !== id));
+      setTasks((prev) => prev.filter((t) => t.id !== id));
     } catch (err: any) {
       setError(err.message || 'Failed to delete task');
-      console.error('Error deleting task:', err);
     }
   };
 
@@ -113,10 +140,9 @@ export default function DashboardPage({ userEmail, onLogout }: DashboardPageProp
     try {
       setError('');
       await taskAPI.updateTask(id, { status: newStatus });
-      setTasks(tasks.map((t) => (t.id === id ? { ...t, status: newStatus } : t)));
+      setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status: newStatus } : t)));
     } catch (err: any) {
       setError(err.message || 'Failed to update task');
-      console.error('Error updating task:', err);
     }
   };
 
@@ -127,16 +153,24 @@ export default function DashboardPage({ userEmail, onLogout }: DashboardPageProp
       <main className="flex-1 overflow-auto">
         <div className="pt-16 lg:pt-0 px-6 lg:px-8 py-8">
           <div className="max-w-7xl mx-auto">
+
+            {/* Header */}
             <div className="flex flex-col gap-4 mb-8 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white transition-colors">Dashboard</h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-1 transition-colors">Welcome back, {userEmail.split('@')[0]}</p>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white transition-colors">
+                  Dashboard
+                </h1>
+                <p className="text-gray-600 dark:text-gray-400 mt-1 transition-colors">
+                  Welcome back, {userEmail.split('@')[0]}
+                </p>
               </div>
+
               {error && (
                 <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-3">
                   <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
                 </div>
               )}
+
               <button
                 onClick={() => setShowNewTask(true)}
                 className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-6 py-3 rounded-lg flex items-center gap-2 transition w-full lg:w-auto justify-center shadow-lg shadow-primary-500/30"
@@ -146,6 +180,7 @@ export default function DashboardPage({ userEmail, onLogout }: DashboardPageProp
               </button>
             </div>
 
+            {/* New Task Form */}
             {showNewTask && (
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8 border border-primary-200 dark:border-primary-800 transition-colors duration-300">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Create New Task</h2>
@@ -158,9 +193,7 @@ export default function DashboardPage({ userEmail, onLogout }: DashboardPageProp
                       <input
                         type="text"
                         value={newTask.title}
-                        onChange={(e) =>
-                          setNewTask({ ...newTask, title: e.target.value })
-                        }
+                        onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
                         placeholder="Enter task title"
                         className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
                         required
@@ -174,10 +207,7 @@ export default function DashboardPage({ userEmail, onLogout }: DashboardPageProp
                         <select
                           value={newTask.priority}
                           onChange={(e) =>
-                            setNewTask({
-                              ...newTask,
-                              priority: e.target.value as 'high' | 'medium' | 'low',
-                            })
+                            setNewTask({ ...newTask, priority: e.target.value as 'high' | 'medium' | 'low' })
                           }
                           className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors appearance-none"
                         >
@@ -193,9 +223,7 @@ export default function DashboardPage({ userEmail, onLogout }: DashboardPageProp
                       </label>
                       <textarea
                         value={newTask.description}
-                        onChange={(e) =>
-                          setNewTask({ ...newTask, description: e.target.value })
-                        }
+                        onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
                         placeholder="Enter task description (optional)"
                         className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
                         rows={2}
@@ -208,9 +236,7 @@ export default function DashboardPage({ userEmail, onLogout }: DashboardPageProp
                       <input
                         type="text"
                         value={newTask.dueDate}
-                        onChange={(e) =>
-                          setNewTask({ ...newTask, dueDate: e.target.value })
-                        }
+                        onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
                         placeholder="e.g., Mar 20"
                         className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
                       />
@@ -235,34 +261,39 @@ export default function DashboardPage({ userEmail, onLogout }: DashboardPageProp
               </div>
             )}
 
+            {/* Kanban Board */}
             {isLoading ? (
               <div className="text-center py-12">
-                <p className="text-gray-600 dark:text-gray-400">Loading tasks...</p>
+                <p className="text-gray-600 dark:text-gray-400">Loading tasks…</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <TaskSection
-                  title="Active Tasks"
-                  tasks={activeTasks}
-                  onDeleteTask={handleDeleteTask}
-                  onStatusChange={handleStatusChange}
-                />
-
-                <TaskSection
-                  title="In Progress"
-                  tasks={progressTasks}
-                  onDeleteTask={handleDeleteTask}
-                  onStatusChange={handleStatusChange}
-                />
-
-                <TaskSection
-                  title="Completed"
-                  tasks={completedTasks}
-                  onDeleteTask={handleDeleteTask}
-                  onStatusChange={handleStatusChange}
-                />
-              </div>
+              <DragDropContext onDragEnd={onDragEnd}>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <TaskSection
+                    droppableId="active"
+                    title="Active"
+                    tasks={activeTasks}
+                    onDeleteTask={handleDeleteTask}
+                    onStatusChange={handleStatusChange}
+                  />
+                  <TaskSection
+                    droppableId="progress"
+                    title="In Progress"
+                    tasks={progressTasks}
+                    onDeleteTask={handleDeleteTask}
+                    onStatusChange={handleStatusChange}
+                  />
+                  <TaskSection
+                    droppableId="completed"
+                    title="Completed"
+                    tasks={completedTasks}
+                    onDeleteTask={handleDeleteTask}
+                    onStatusChange={handleStatusChange}
+                  />
+                </div>
+              </DragDropContext>
             )}
+
           </div>
         </div>
       </main>
