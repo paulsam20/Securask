@@ -76,3 +76,4 @@ export default function CalendarPage({ userEmail, onLogout, onNavigate }: Calend
     </div>
   );
 }
+

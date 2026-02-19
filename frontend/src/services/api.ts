@@ -148,3 +148,34 @@ export const stickyNotesAPI = {
     });
   },
 };
+
+// Calendar Tasks API (cloud)
+export const calendarTaskAPI = {
+  list: async () => {
+    return fetchWithAuth('/calendar-tasks');
+  },
+  create: async (task: { title: string; time: string; date: string; description?: string }) => {
+    return fetchWithAuth('/calendar-tasks', {
+      method: 'POST',
+      body: JSON.stringify(task),
+    });
+  },
+  update: async (id: string, updates: {
+    title?: string;
+    time?: string;
+    date?: string;
+    description?: string;
+    completed?: boolean;
+  }) => {
+    return fetchWithAuth(`/calendar-tasks/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+  },
+  remove: async (id: string) => {
+    return fetchWithAuth(`/calendar-tasks/${id}`, {
+      method: 'DELETE',
+    });
+  },
+};
+

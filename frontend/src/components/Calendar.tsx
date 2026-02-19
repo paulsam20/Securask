@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Clock, X, Plus, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, X, Plus, Trash2, Loader2 } from 'lucide-react';
+import { calendarTaskAPI } from '../services/api';
 
 interface Task {
   id: string;
@@ -13,6 +14,8 @@ interface Task {
 export default function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [newTask, setNewTask] = useState({
@@ -22,18 +25,32 @@ export default function Calendar() {
   });
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Load tasks from localStorage
+  // Load tasks from cloud
   useEffect(() => {
-    const saved = localStorage.getItem('calendarTasks');
-    if (saved) {
-      setTasks(JSON.parse(saved));
-    }
+    fetchTasks();
   }, []);
 
-  // Save tasks to localStorage
-  useEffect(() => {
-    localStorage.setItem('calendarTasks', JSON.stringify(tasks));
-  }, [tasks]);
+  const fetchTasks = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await calendarTaskAPI.list();
+      const normalizedTasks = data.map((t: any) => ({
+        id: t._id,
+        title: t.title,
+        time: t.time,
+        date: t.date,
+        description: t.description,
+        completed: t.completed
+      }));
+      setTasks(normalizedTasks);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load tasks');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const getDaysInMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -43,47 +60,77 @@ export default function Calendar() {
     return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
   };
 
-  const handleAddTask = () => {
+  const handleAddTask = async () => {
     if (!newTask.title.trim() || !selectedDate) return;
 
-    if (editingId) {
-      setTasks((prev) =>
-        prev.map((t) =>
-          t.id === editingId
-            ? {
+    try {
+      if (editingId) {
+        const updatedTask = await calendarTaskAPI.update(editingId, {
+          title: newTask.title,
+          time: newTask.time,
+          description: newTask.description,
+        });
+
+        setTasks((prev) =>
+          prev.map((t) =>
+            t.id === editingId
+              ? {
                 ...t,
-                title: newTask.title,
-                time: newTask.time,
-                description: newTask.description,
+                title: updatedTask.title,
+                time: updatedTask.time,
+                description: updatedTask.description,
               }
-            : t
-        )
-      );
-      setEditingId(null);
-    } else {
-      const task: Task = {
-        id: Date.now().toString(),
-        title: newTask.title,
-        time: newTask.time,
-        date: selectedDate,
-        description: newTask.description,
-        completed: false,
-      };
-      setTasks((prev) => [...prev, task]);
+              : t
+          )
+        );
+        setEditingId(null);
+      } else {
+        const createdTask = await calendarTaskAPI.create({
+          title: newTask.title,
+          time: newTask.time,
+          date: selectedDate,
+          description: newTask.description,
+        });
+
+        const task: Task = {
+          id: createdTask._id,
+          title: createdTask.title,
+          time: createdTask.time,
+          date: createdTask.date,
+          description: createdTask.description,
+          completed: createdTask.completed,
+        };
+        setTasks((prev) => [...prev, task]);
+      }
+
+      setNewTask({ title: '', time: '09:00', description: '' });
+      setShowModal(false);
+    } catch (err: any) {
+      setError(err.message || 'Failed to save task');
     }
-
-    setNewTask({ title: '', time: '09:00', description: '' });
-    setShowModal(false);
   };
 
-  const handleDeleteTask = (id: string) => {
-    setTasks((prev) => prev.filter((t) => t.id !== id));
+  const handleDeleteTask = async (id: string) => {
+    try {
+      await calendarTaskAPI.remove(id);
+      setTasks((prev) => prev.filter((t) => t.id !== id));
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete task');
+    }
   };
 
-  const handleToggleTask = (id: string) => {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
-    );
+  const handleToggleTask = async (id: string) => {
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+
+    try {
+      const updated = await calendarTaskAPI.update(id, { completed: !task.completed });
+      setTasks((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, completed: updated.completed } : t))
+      );
+    } catch (err: any) {
+      setError(err.message || 'Failed to update task');
+    }
   };
 
   const handleEditTask = (task: Task) => {
@@ -130,7 +177,28 @@ export default function Calendar() {
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
   return (
-    <div className="w-full h-full flex flex-col gap-6">
+    <div className="w-full h-full flex flex-col gap-6 relative">
+      {isLoading && (
+        <div className="absolute inset-0 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center rounded-xl">
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Loading tasks...</p>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 rounded-xl flex items-center justify-between">
+          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+          <button
+            onClick={() => setError(null)}
+            className="text-red-500 hover:text-red-700 font-bold"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Calendar Section */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
         {/* Header */}
@@ -205,23 +273,21 @@ export default function Calendar() {
                     return (
                       <td
                         key={`${weekIndex}-${dayIndex}`}
-                        className={`border-r border-gray-200 dark:border-gray-700 p-3 min-h-32 align-top ${
-                          day === null
-                            ? 'bg-gray-50 dark:bg-gray-800/50'
-                            : isToday
+                        className={`border-r border-gray-200 dark:border-gray-700 p-3 min-h-32 align-top ${day === null
+                          ? 'bg-gray-50 dark:bg-gray-800/50'
+                          : isToday
                             ? 'bg-primary-50 dark:bg-primary-900/20'
                             : 'bg-white dark:bg-gray-800'
-                        }`}
+                          }`}
                       >
                         {day !== null && (
                           <div className="h-full flex flex-col">
                             <div className="flex items-center justify-between mb-2">
                               <span
-                                className={`text-sm font-bold ${
-                                  isToday
-                                    ? 'bg-primary-500 text-white px-2 py-1 rounded-full'
-                                    : 'text-gray-900 dark:text-white'
-                                }`}
+                                className={`text-sm font-bold ${isToday
+                                  ? 'bg-primary-500 text-white px-2 py-1 rounded-full'
+                                  : 'text-gray-900 dark:text-white'
+                                  }`}
                               >
                                 {day}
                               </span>
@@ -239,11 +305,10 @@ export default function Calendar() {
                               {dayTasks.map((task) => (
                                 <div
                                   key={task.id}
-                                  className={`text-xs p-2 rounded-lg border transition group ${
-                                    task.completed
-                                      ? 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400'
-                                      : 'bg-primary-100 dark:bg-primary-900/40 border-primary-300 dark:border-primary-700 text-primary-900 dark:text-primary-100'
-                                  }`}
+                                  className={`text-xs p-2 rounded-lg border transition group ${task.completed
+                                    ? 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400'
+                                    : 'bg-primary-100 dark:bg-primary-900/40 border-primary-300 dark:border-primary-700 text-primary-900 dark:text-primary-100'
+                                    }`}
                                 >
                                   <div className="flex items-start gap-1.5">
                                     <input
@@ -254,9 +319,8 @@ export default function Calendar() {
                                     />
                                     <div className="flex-1 min-w-0">
                                       <p
-                                        className={`font-medium truncate ${
-                                          task.completed ? 'line-through' : ''
-                                        }`}
+                                        className={`font-medium truncate ${task.completed ? 'line-through' : ''
+                                          }`}
                                       >
                                         {task.title}
                                       </p>
