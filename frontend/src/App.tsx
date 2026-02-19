@@ -34,7 +34,7 @@ const pageVariants = {
       ease: 'easeIn',
     },
   },
-};
+} as const;
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);

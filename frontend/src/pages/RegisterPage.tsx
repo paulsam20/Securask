@@ -3,6 +3,8 @@ import { CheckCircle, UserPlus, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { authAPI } from '../services/api';
 
+import ShuffleText from '../components/ShuffleText';
+
 interface RegisterPageProps {
     onSwitchToLogin: () => void;
 }
@@ -96,11 +98,12 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
                             >
                                 <CheckCircle className="w-8 h-8 text-white" />
                             </motion.div>
-                            <span className="text-3xl font-extrabold tracking-tight">Securask</span>
+                            <ShuffleText text="Securask" className="text-3xl font-extrabold tracking-tight" />
                         </div>
-                        <p className="text-primary-100 dark:text-gray-400 text-lg">
-                            Create a free account and take control of your tasks in seconds.
-                        </p>
+                        <ShuffleText
+                            text="Create a free account and take control of your tasks in seconds."
+                            className="text-primary-100 dark:text-gray-400 text-lg block mt-2"
+                        />
                     </motion.div>
                 </div>
 

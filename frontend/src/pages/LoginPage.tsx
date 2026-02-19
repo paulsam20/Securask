@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { authAPI } from '../services/api';
 import { authService } from '../services/auth';
 
+import ShuffleText from '../components/ShuffleText';
+
 interface LoginPageProps {
   onLogin: (email: string, user: any) => void;
   onSwitchToRegister: () => void;
@@ -96,11 +98,12 @@ export default function LoginPage({ onLogin, onSwitchToRegister }: LoginPageProp
               >
                 <CheckCircle className="w-8 h-8 text-white" />
               </motion.div>
-              <span className="text-3xl font-extrabold tracking-tight">Securask</span>
+              <ShuffleText text="Securask" className="text-3xl font-extrabold tracking-tight" />
             </div>
-            <p className="text-primary-100 dark:text-gray-400 text-lg">
-              A minimal, powerful task manager built for focused teams.
-            </p>
+            <ShuffleText
+              text="A minimal, powerful task manager built for focused individuals."
+              className="text-primary-100 dark:text-gray-400 text-lg block mt-2"
+            />
           </motion.div>
         </div>
 
@@ -187,8 +190,8 @@ export default function LoginPage({ onLogin, onSwitchToRegister }: LoginPageProp
 
             {error && (
               <motion.div
-                initial={{ opacity: 0, h: 0 }}
-                animate={{ opacity: 1, h: 'auto' }}
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
                 className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg"
               >
                 <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
