@@ -37,6 +37,7 @@ const mapBackendTaskToFrontend = (backendTask: any): Task => {
 };
 
 export default function DashboardPage({ userEmail, onLogout }: DashboardPageProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [showNewTask, setShowNewTask] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -146,16 +147,42 @@ export default function DashboardPage({ userEmail, onLogout }: DashboardPageProp
     }
   };
 
-  return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      <Sidebar userEmail={userEmail} onLogout={onLogout} />
+  const handleUpdateTask = async (
+    id: string,
+    updates: { title?: string; description?: string; priority?: 'high' | 'medium' | 'low'; dueDate?: string },
+  ) => {
+    try {
+      setError('');
+      await taskAPI.updateTask(id, updates);
+      setTasks((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, ...updates } : t)),
+      );
+    } catch (err: any) {
+      setError(err.message || 'Failed to update task');
+    }
+  };
 
-      <main className="flex-1 overflow-auto">
+  const progressPercent = tasks.length > 0 ? Math.round((completedTasks.length / tasks.length) * 100) : 0;
+
+  return (
+    <div className="flex h-screen bg-gradient-to-br from-primary-600/8 via-gray-50/85 to-violet-600/8 dark:from-primary-900/15 dark:via-gray-900/85 dark:to-violet-900/15 transition-colors duration-300">
+      <Sidebar
+        userEmail={userEmail}
+        onLogout={onLogout}
+        isOpen={sidebarOpen}
+        onToggle={() => setSidebarOpen((o) => !o)}
+      />
+
+      <main
+        className={`flex-1 overflow-auto transition-[padding] duration-300 ${
+          sidebarOpen ? 'lg:pl-[280px]' : 'lg:pl-14'
+        }`}
+      >
         <div className="pt-16 lg:pt-0 px-6 lg:px-8 py-8">
           <div className="max-w-7xl mx-auto">
 
             {/* Header */}
-            <div className="flex flex-col gap-4 mb-8 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col gap-4 mb-6 lg:flex-row lg:items-center lg:justify-between pr-14 lg:pr-16">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white transition-colors">
                   Dashboard
@@ -178,6 +205,20 @@ export default function DashboardPage({ userEmail, onLogout }: DashboardPageProp
                 <Plus className="w-5 h-5" />
                 New Task
               </button>
+            </div>
+
+            {/* Progress bar */}
+            <div className="mb-8">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Task Progress</span>
+                <span className="text-sm font-semibold text-primary-600 dark:text-primary-400">{progressPercent}% Complete</span>
+              </div>
+              <div className="h-2.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-primary-500 to-violet-500 rounded-full transition-all duration-500"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
             </div>
 
             {/* New Task Form */}
@@ -275,6 +316,7 @@ export default function DashboardPage({ userEmail, onLogout }: DashboardPageProp
                     tasks={activeTasks}
                     onDeleteTask={handleDeleteTask}
                     onStatusChange={handleStatusChange}
+                    onUpdateTask={handleUpdateTask}
                   />
                   <TaskSection
                     droppableId="progress"
@@ -282,6 +324,7 @@ export default function DashboardPage({ userEmail, onLogout }: DashboardPageProp
                     tasks={progressTasks}
                     onDeleteTask={handleDeleteTask}
                     onStatusChange={handleStatusChange}
+                    onUpdateTask={handleUpdateTask}
                   />
                   <TaskSection
                     droppableId="completed"

@@ -102,14 +102,13 @@ export const taskAPI = {
     priority?: 'high' | 'medium' | 'low';
     dueDate?: string;
   }) => {
-    // Map frontend status to backend status
-    const backendStatus = updates.status === 'completed' ? 'completed' : 'pending';
+    const body: Record<string, unknown> = { ...updates };
+    if (updates.status !== undefined) {
+      body.status = updates.status === 'completed' ? 'completed' : 'pending';
+    }
     return fetchWithAuth(`/tasks/${id}`, {
       method: 'PUT',
-      body: JSON.stringify({
-        ...updates,
-        status: backendStatus,
-      }),
+      body: JSON.stringify(body),
     });
   },
 

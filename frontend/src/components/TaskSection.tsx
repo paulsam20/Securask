@@ -16,6 +16,7 @@ interface TaskSectionProps {
   tasks: Task[];
   onDeleteTask: (id: string) => void;
   onStatusChange: (id: string, newStatus: 'active' | 'progress' | 'completed') => void;
+  onUpdateTask?: (id: string, updates: { title?: string; description?: string; priority?: 'high' | 'medium' | 'low'; dueDate?: string }) => void;
 }
 
 const columnAccent: Record<string, string> = {
@@ -36,6 +37,7 @@ export default function TaskSection({
   tasks,
   onDeleteTask,
   onStatusChange,
+  onUpdateTask,
 }: TaskSectionProps) {
   const accent = columnAccent[droppableId] ?? columnAccent.active;
   const header = headerAccent[droppableId] ?? headerAccent.active;
@@ -81,6 +83,7 @@ export default function TaskSection({
                     {...task}
                     onDelete={onDeleteTask}
                     onStatusChange={onStatusChange}
+                    onUpdateTask={onUpdateTask}
                   />
                 ))}
                 {provided.placeholder}

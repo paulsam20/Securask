@@ -1,13 +1,13 @@
-import { useState } from 'react';
 import { Menu, X, CheckCircle, LogOut } from 'lucide-react';
 
 interface SidebarProps {
   userEmail: string;
   onLogout: () => void;
+  isOpen: boolean;
+  onToggle: () => void;
 }
 
-export default function Sidebar({ userEmail, onLogout }: SidebarProps) {
-  const [isOpen, setIsOpen] = useState(true);
+export default function Sidebar({ userEmail, onLogout, isOpen, onToggle }: SidebarProps) {
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard' },
@@ -19,7 +19,7 @@ export default function Sidebar({ userEmail, onLogout }: SidebarProps) {
   return (
     <>
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={onToggle}
         className={`fixed top-4 z-50 bg-primary-500 text-white p-2 rounded-lg hover:bg-primary-600 transition ${isOpen ? 'left-[292px]' : 'left-4'
           }`}
       >
@@ -78,7 +78,7 @@ export default function Sidebar({ userEmail, onLogout }: SidebarProps) {
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30 lg:hidden"
-          onClick={() => setIsOpen(false)}
+          onClick={onToggle}
         />
       )}
     </>

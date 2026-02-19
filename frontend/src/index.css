@@ -12,3 +12,44 @@
     @apply transition-colors duration-300 ease-in-out bg-gray-50 dark:bg-gray-900;
   }
 }
+
+@layer utilities {
+  .marquee-container {
+    display: flex;
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .marquee-content {
+    display: inline-block;
+    padding: 1rem 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: rgba(255, 255, 255, 0.9);
+    animation: marquee 60s linear infinite;
+  }
+
+  .marquee-reverse .marquee-content {
+    animation: marquee-reverse 60s linear infinite;
+  }
+
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes marquee-reverse {
+    0% {
+      transform: translateX(-50%);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+}

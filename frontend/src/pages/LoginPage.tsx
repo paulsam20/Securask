@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckCircle, ShieldCheck, Zap, LayoutDashboard } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 import { authAPI } from '../services/api';
 import { authService } from '../services/auth';
 
@@ -8,11 +8,7 @@ interface LoginPageProps {
   onSwitchToRegister: () => void;
 }
 
-const features = [
-  { icon: LayoutDashboard, label: 'Kanban Board', desc: 'Drag & drop tasks across columns' },
-  { icon: Zap, label: 'Instant Sync', desc: 'Changes reflect in real-time' },
-  { icon: ShieldCheck, label: 'Secure Auth', desc: 'JWT-based protected sessions' },
-];
+const marqueeText = "Securask • Task Management • Secure • Efficient • Organized • Productive • ";
 
 export default function LoginPage({ onLogin, onSwitchToRegister }: LoginPageProps) {
   const [email, setEmail] = useState('');
@@ -40,43 +36,50 @@ export default function LoginPage({ onLogin, onSwitchToRegister }: LoginPageProp
     <div className="min-h-screen flex transition-colors duration-300">
 
       {/* ── Left branding panel (hidden on mobile) ── */}
-      <div className="hidden lg:flex lg:w-1/2 relative items-center justify-center overflow-hidden
+      <div className="hidden lg:flex lg:w-1/2 relative flex-col overflow-hidden
                       bg-gradient-to-br from-primary-600 via-primary-500 to-violet-600
                       dark:from-gray-900 dark:via-primary-900 dark:to-violet-950">
         {/* Decorative blobs */}
         <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-white/10 blur-3xl" />
         <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-violet-400/20 blur-2xl" />
 
-        <div className="relative z-10 px-16 text-white max-w-md">
-          {/* Logo */}
-          <div className="flex items-center gap-3 mb-10">
-            <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
-              <CheckCircle className="w-8 h-8 text-white" />
+        {/* Top marquee */}
+        <div className="relative z-10 overflow-hidden border-b border-white/10">
+          <div className="marquee-container">
+            <div className="marquee-content">
+              {marqueeText.repeat(5)}
             </div>
-            <span className="text-3xl font-extrabold tracking-tight">Securask</span>
+            <div className="marquee-content" aria-hidden="true">
+              {marqueeText.repeat(5)}
+            </div>
           </div>
+        </div>
 
-          <h2 className="text-4xl font-bold leading-tight mb-4">
-            Organize your work,<br />achieve your goals.
-          </h2>
-          <p className="text-primary-100 dark:text-gray-400 mb-10 text-lg">
-            A minimal, powerful task manager built for focused teams.
-          </p>
+        {/* Center logo and tagline */}
+        <div className="relative z-10 flex-1 flex items-center justify-center px-16">
+          <div className="text-white text-center max-w-md">
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                <CheckCircle className="w-8 h-8 text-white" />
+              </div>
+              <span className="text-3xl font-extrabold tracking-tight">Securask</span>
+            </div>
+            <p className="text-primary-100 dark:text-gray-400 text-lg">
+              A minimal, powerful task manager built for focused teams.
+            </p>
+          </div>
+        </div>
 
-          {/* Feature highlights */}
-          <ul className="space-y-5">
-            {features.map(({ icon: Icon, label, desc }) => (
-              <li key={label} className="flex items-start gap-4">
-                <div className="flex-shrink-0 bg-white/15 rounded-lg p-2 backdrop-blur-sm">
-                  <Icon className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <p className="font-semibold">{label}</p>
-                  <p className="text-sm text-primary-200 dark:text-gray-400">{desc}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
+        {/* Bottom marquee */}
+        <div className="relative z-10 overflow-hidden border-t border-white/10">
+          <div className="marquee-container marquee-reverse">
+            <div className="marquee-content">
+              {marqueeText.repeat(5)}
+            </div>
+            <div className="marquee-content" aria-hidden="true">
+              {marqueeText.repeat(5)}
+            </div>
+          </div>
         </div>
       </div>
 

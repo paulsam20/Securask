@@ -1,4 +1,5 @@
-import { Trash2, CheckCircle2, Clock, GripVertical } from 'lucide-react';
+import { useState } from 'react';
+import { Trash2, CheckCircle2, Clock, GripVertical, Pencil, Check } from 'lucide-react';
 import { Draggable } from '@hello-pangea/dnd';
 
 interface TaskCardProps {
@@ -11,6 +12,7 @@ interface TaskCardProps {
   status: 'active' | 'progress' | 'completed';
   onDelete: (id: string) => void;
   onStatusChange?: (id: string, newStatus: 'active' | 'progress' | 'completed') => void;
+  onUpdateTask?: (id: string, updates: { title?: string; description?: string; priority?: 'high' | 'medium' | 'low'; dueDate?: string }) => void;
 }
 
 const priorityColors = {
@@ -35,8 +37,21 @@ export default function TaskCard({
   status,
   onDelete,
   onStatusChange,
+  onUpdateTask,
 }: TaskCardProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(title);
+  const [editDescription, setEditDescription] = useState(description ?? '');
   const s = statusStyles[status];
+
+  const isEditable = (status === 'active' || status === 'progress') && onUpdateTask;
+
+  const handleSaveEdit = () => {
+    if (editTitle.trim() && onUpdateTask) {
+      onUpdateTask(id, { title: editTitle.trim(), description: editDescription.trim() || undefined });
+      setIsEditing(false);
+    }
+  };
 
   const getNextStatus = (): 'active' | 'progress' | 'completed' => {
     const order: ('active' | 'progress' | 'completed')[] = ['active', 'progress', 'completed'];
@@ -44,7 +59,7 @@ export default function TaskCard({
   };
 
   return (
-    <Draggable draggableId={id} index={index}>
+    <Draggable draggableId={id} index={index} isDragDisabled={isEditing}>
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
@@ -59,38 +74,84 @@ export default function TaskCard({
           `}
         >
           <div className="flex items-start justify-between mb-3">
-            {/* Drag handle */}
-            <div
-              {...provided.dragHandleProps}
-              className="flex-shrink-0 mt-0.5 mr-2 cursor-grab active:cursor-grabbing text-gray-400 dark:text-gray-500 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
-              title="Drag to reorder"
-            >
-              <GripVertical className="w-4 h-4" />
-            </div>
+            {/* Drag handle - hidden when editing */}
+            {!isEditing && (
+              <div
+                {...provided.dragHandleProps}
+                className="flex-shrink-0 mt-0.5 mr-2 cursor-grab active:cursor-grabbing text-gray-400 dark:text-gray-500 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
+                title="Drag to reorder"
+              >
+                <GripVertical className="w-4 h-4" />
+              </div>
+            )}
 
-            <div className="flex items-start gap-2 flex-1">
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 dark:text-white transition-colors">
-                  {title}
-                </h3>
-                {description && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 transition-colors">
-                    {description}
-                  </p>
+            <div className="flex items-start gap-2 flex-1 min-w-0">
+              <div className="flex-1 min-w-0">
+                {isEditing ? (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit()}
+                      className="w-full px-2 py-1 text-sm font-semibold rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                      autoFocus
+                    />
+                    <textarea
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
+                      className="w-full px-2 py-1 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:outline-none resize-none"
+                      rows={2}
+                      placeholder="Description (optional)"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <h3 className={`font-semibold text-gray-900 dark:text-white transition-colors ${status === 'completed' ? 'line-through opacity-75' : ''}`}>
+                      {title}
+                    </h3>
+                    {description && (
+                      <p className={`text-sm text-gray-600 dark:text-gray-400 mt-1 transition-colors ${status === 'completed' ? 'line-through opacity-75' : ''}`}>
+                        {description}
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
+              {isEditable && !isEditing && (
+                <button
+                  onClick={() => {
+                    setEditTitle(title);
+                    setEditDescription(description ?? '');
+                    setIsEditing(true);
+                  }}
+                  className="flex-shrink-0 p-1.5 hover:bg-white dark:hover:bg-gray-700 rounded-md transition-colors"
+                  title="Edit task"
+                >
+                  <Pencil className="w-4 h-4 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors" />
+                </button>
+              )}
+              {isEditing && (
+                <button
+                  onClick={handleSaveEdit}
+                  className="flex-shrink-0 p-1.5 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-md transition-colors"
+                  title="Save"
+                >
+                  <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
+                </button>
+              )}
             </div>
           </div>
 
-          <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className={`flex items-center justify-between flex-wrap gap-2 ${status === 'completed' ? 'opacity-75' : ''}`}>
             <div className="flex items-center gap-2">
               {priority && (
-                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${priorityColors[priority]}`}>
+                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${priorityColors[priority]} ${status === 'completed' ? 'line-through' : ''}`}>
                   {priority.charAt(0).toUpperCase() + priority.slice(1)}
                 </span>
               )}
               {dueDate && (
-                <span className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1 transition-colors">
+                <span className={`text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1 transition-colors ${status === 'completed' ? 'line-through' : ''}`}>
                   <Clock className="w-3.5 h-3.5" />
                   {dueDate}
                 </span>

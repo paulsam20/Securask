@@ -53,19 +53,18 @@ export default function ParticleBackground() {
         const initParticles = () => {
             particles = [];
             const colors = theme === 'dark' ? darkColors : lightColors;
-            // More particles for a richer background
-            const count = Math.floor((canvas.width * canvas.height) / 9000);
+            const count = Math.floor((canvas.width * canvas.height) / 12000);
 
             for (let i = 0; i < count; i++) {
-                const size = Math.random() * 3.5 + 1;
+                const size = Math.random() * 0.7 + 0.5;
                 particles.push({
                     x: Math.random() * canvas.width,
                     y: Math.random() * canvas.height,
-                    dx: (Math.random() - 0.5) * 0.4,
-                    dy: (Math.random() - 0.5) * 0.4,
+                    dx: (Math.random() - 0.5) * 0.15,
+                    dy: (Math.random() - 0.5) * 0.15,
                     size,
-                    opacity: Math.random() * 0.5 + 0.15,
-                    pulseSpeed: Math.random() * 0.02 + 0.005,
+                    opacity: Math.random() * 0.2 + 0.25,
+                    pulseSpeed: Math.random() * 0.015 + 0.003,
                     pulsePhase: Math.random() * Math.PI * 2,
                     color: colors[Math.floor(Math.random() * colors.length)],
                 });
@@ -77,20 +76,19 @@ export default function ParticleBackground() {
             frame++;
 
             particles.forEach((p) => {
-                // Pulsing opacity
-                const pulse = Math.sin(frame * p.pulseSpeed + p.pulsePhase) * 0.15;
-                const alpha = Math.min(1, Math.max(0.05, p.opacity + pulse));
+                const pulse = Math.sin(frame * p.pulseSpeed + p.pulsePhase) * 0.08;
+                const alpha = Math.min(0.6, Math.max(0.12, p.opacity + pulse));
 
-                // Glow effect: draw a soft halo first
-                const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3.5);
-                gradient.addColorStop(0, `${p.color}${(alpha * 0.55).toFixed(2)})`);
+                const glowRadius = p.size * 6;
+                const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowRadius);
+                gradient.addColorStop(0, `${p.color}${(alpha * 0.5).toFixed(2)})`);
+                gradient.addColorStop(0.5, `${p.color}${(alpha * 0.15).toFixed(2)})`);
                 gradient.addColorStop(1, `${p.color}0)`);
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size * 3.5, 0, Math.PI * 2);
+                ctx.arc(p.x, p.y, glowRadius, 0, Math.PI * 2);
                 ctx.fillStyle = gradient;
                 ctx.fill();
 
-                // Solid center dot
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                 ctx.fillStyle = `${p.color}${alpha.toFixed(2)})`;
