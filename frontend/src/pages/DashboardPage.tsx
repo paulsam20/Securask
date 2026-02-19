@@ -101,6 +101,7 @@ export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false
   const priorityCounts = useMemo(() => {
     const counts = { high: 0, medium: 0, low: 0 } as { high: number; medium: number; low: number };
     for (const t of tasks) {
+      if (t.status === 'completed') continue; // Exclude completed tasks from priority counts
       const p = (t.priority ?? 'medium') as 'high' | 'medium' | 'low';
       counts[p] += 1;
     }
@@ -218,7 +219,7 @@ export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false
       />
 
       <main
-        className={`flex-1 overflow-auto transition-[padding] duration-300 ${sidebarOpen ? 'lg:pl-[280px]' : 'lg:pl-14'
+        className={`flex-1 overflow-auto custom-scrollbar transition-[padding] duration-300 ${sidebarOpen ? 'lg:pl-[280px]' : 'lg:pl-14'
           }`}
       >
         <motion.div
@@ -284,54 +285,57 @@ export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false
               </div>
             </motion.div>
 
-            {/* Daily Summary */}
-            <motion.div variants={childVariants} className="mb-6">
-              <div className="rounded-2xl border border-gray-200/70 dark:border-gray-800/70 bg-white/75 dark:bg-gray-900/40 backdrop-blur-md p-5 shadow-sm">
-                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                  <motion.div variants={childVariants}>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                      Good {now.getHours() < 12 ? 'morning' : now.getHours() < 18 ? 'afternoon' : 'evening'}, {userEmail.split('@')[0]}.
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      You have <span className="font-semibold text-primary-700 dark:text-primary-300">{pendingCount}</span> pending task{pendingCount === 1 ? '' : 's'} left today.
-                    </p>
-                  </motion.div>
+            {/* Daily Summary & Progress Bar - Only shown on main dashboard */}
+            {currentPage === 'dashboard' && (
+              <>
+                <motion.div variants={childVariants} className="mb-6">
+                  <div className="rounded-2xl border border-gray-200/70 dark:border-gray-800/70 bg-white/75 dark:bg-gray-900/40 backdrop-blur-md p-5 shadow-sm">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <motion.div variants={childVariants}>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                          Good {now.getHours() < 12 ? 'morning' : now.getHours() < 18 ? 'afternoon' : 'evening'}, {userEmail.split('@')[0]}.
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          You have <span className="font-semibold text-primary-700 dark:text-primary-300">{pendingCount}</span> pending task{pendingCount === 1 ? '' : 's'} left today.
+                        </p>
+                      </motion.div>
 
-                  <div className="flex items-center gap-3">
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      className="rounded-xl px-4 py-3 bg-gradient-to-br from-primary-500/10 to-violet-500/10 dark:from-primary-400/10 dark:to-violet-400/10 border border-primary-200/40 dark:border-primary-800/40"
-                    >
-                      <p className="text-[11px] text-gray-500 dark:text-gray-400">Completion</p>
-                      <p className="text-xl font-extrabold text-gray-900 dark:text-white leading-tight">{progressPercent}%</p>
-                    </motion.div>
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      className="rounded-xl px-4 py-3 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 dark:from-emerald-400/10 dark:to-teal-400/10 border border-emerald-200/40 dark:border-emerald-800/40"
-                    >
-                      <p className="text-[11px] text-gray-500 dark:text-gray-400">Completed</p>
-                      <p className="text-xl font-extrabold text-gray-900 dark:text-white leading-tight">{completedTasks.length}</p>
-                    </motion.div>
+                      <div className="flex items-center gap-3">
+                        <motion.div
+                          whileHover={{ scale: 1.05 }}
+                          className="rounded-xl px-4 py-3 bg-gradient-to-br from-primary-500/10 to-violet-500/10 dark:from-primary-400/10 dark:to-violet-400/10 border border-primary-200/40 dark:border-primary-800/40"
+                        >
+                          <p className="text-[11px] text-gray-500 dark:text-gray-400">Completion</p>
+                          <p className="text-xl font-extrabold text-gray-900 dark:text-white leading-tight">{progressPercent}%</p>
+                        </motion.div>
+                        <motion.div
+                          whileHover={{ scale: 1.05 }}
+                          className="rounded-xl px-4 py-3 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 dark:from-emerald-400/10 dark:to-teal-400/10 border border-emerald-200/40 dark:border-emerald-800/40"
+                        >
+                          <p className="text-[11px] text-gray-500 dark:text-gray-400">Completed</p>
+                          <p className="text-xl font-extrabold text-gray-900 dark:text-white leading-tight">{completedTasks.length}</p>
+                        </motion.div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </motion.div>
+                </motion.div>
 
-            {/* Progress bar */}
-            <motion.div variants={childVariants} className="mb-8">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Task Progress</span>
-                <span className="text-sm font-semibold text-primary-600 dark:text-primary-400">{progressPercent}% Complete</span>
-              </div>
-              <div className="h-2.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progressPercent}%` }}
-                  transition={{ duration: 1, ease: "easeOut" }}
-                  className="h-full bg-gradient-to-r from-primary-500 to-violet-500 rounded-full"
-                />
-              </div>
-            </motion.div>
+                <motion.div variants={childVariants} className="mb-8">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Task Progress</span>
+                    <span className="text-sm font-semibold text-primary-600 dark:text-primary-400">{progressPercent}% Complete</span>
+                  </div>
+                  <div className="h-2.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progressPercent}%` }}
+                      transition={{ duration: 1, ease: "easeOut" }}
+                      className="h-full bg-gradient-to-r from-primary-500 to-violet-500 rounded-full"
+                    />
+                  </div>
+                </motion.div>
+              </>
+            )}
 
             {/* New Task Form */}
             <AnimatePresence>
