@@ -230,7 +230,7 @@ export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false
           <div className="max-w-7xl mx-auto">
 
             {/* Header */}
-            <motion.div variants={childVariants} className="flex flex-col gap-4 mb-6 lg:flex-row lg:items-center lg:justify-between pr-14 lg:pr-16">
+            <motion.div variants={childVariants} className="flex flex-col gap-4 mb-8 lg:flex-row lg:items-center lg:justify-between pr-14 lg:pr-16">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white transition-colors">
                   Dashboard
@@ -240,29 +240,48 @@ export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false
                 </p>
               </div>
 
-              <AnimatePresence>
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-3 flex items-center gap-2"
-                  >
-                    <AlertCircle className="w-4 h-4 text-red-500" />
-                    <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 lg:gap-6">
+                <AnimatePresence>
+                  {error && (
+                    <motion.div
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-3 flex items-center gap-2"
+                    >
+                      <AlertCircle className="w-4 h-4 text-red-500" />
+                      <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setShowNewTask(true)}
-                className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-6 py-3 rounded-lg flex items-center gap-2 transition w-full lg:w-auto justify-center shadow-lg shadow-primary-500/30"
-              >
-                <Plus className="w-5 h-5" />
-                New Task
-              </motion.button>
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="hidden md:flex items-center gap-2 rounded-xl px-4 py-2 bg-white/50 dark:bg-gray-800/40 border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-sm text-sm text-gray-700 dark:text-gray-300"
+                >
+                  <CalendarIcon className="w-3.5 h-3.5 text-primary-500" />
+                  <span className="font-semibold">
+                    {now.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                  </span>
+                  <span className="text-gray-400 dark:text-gray-600">•</span>
+                  <Clock className="w-3.5 h-3.5 text-violet-500" />
+                  <span className="tabular-nums font-bold">
+                    {now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </motion.div>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setShowNewTask(true)}
+                  className="bg-primary-500 hover:bg-primary-600 text-white font-bold px-6 py-3 rounded-xl flex items-center gap-2 transition w-full lg:w-auto justify-center shadow-lg shadow-primary-500/30"
+                >
+                  <Plus className="w-5 h-5" />
+                  New Task
+                </motion.button>
+              </div>
             </motion.div>
 
             {/* Daily Summary */}
@@ -360,8 +379,8 @@ export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false
                               type="button"
                               onClick={() => setNewTask({ ...newTask, priority: p as any })}
                               className={`py-3 rounded-xl border text-sm font-bold capitalize transition-all ${newTask.priority === p
-                                  ? 'bg-primary-500 border-primary-500 text-white shadow-md'
-                                  : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-primary-500/50'
+                                ? 'bg-primary-500 border-primary-500 text-white shadow-md'
+                                : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-primary-500/50'
                                 }`}
                             >
                               {p}
@@ -435,31 +454,41 @@ export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false
                   <motion.div
                     layout
                     variants={containerVariants}
-                    className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+                    className={`grid gap-6 ${currentPage === 'dashboard' ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-1'
+                      }`}
                   >
-                    <TaskSection
-                      droppableId="active"
-                      title="Active"
-                      tasks={activeTasks}
-                      onDeleteTask={handleDeleteTask}
-                      onStatusChange={handleStatusChange}
-                      onUpdateTask={handleUpdateTask}
-                    />
-                    <TaskSection
-                      droppableId="progress"
-                      title="In Progress"
-                      tasks={progressTasks}
-                      onDeleteTask={handleDeleteTask}
-                      onStatusChange={handleStatusChange}
-                      onUpdateTask={handleUpdateTask}
-                    />
-                    <TaskSection
-                      droppableId="completed"
-                      title="Completed"
-                      tasks={completedTasks}
-                      onDeleteTask={handleDeleteTask}
-                      onStatusChange={handleStatusChange}
-                    />
+                    {(currentPage === 'dashboard' || currentPage === 'active') && (
+                      <TaskSection
+                        droppableId="active"
+                        title="Active"
+                        tasks={activeTasks}
+                        onDeleteTask={handleDeleteTask}
+                        onStatusChange={handleStatusChange}
+                        onUpdateTask={handleUpdateTask}
+                        isFullWidth={currentPage === 'active'}
+                      />
+                    )}
+                    {(currentPage === 'dashboard' || currentPage === 'progress') && (
+                      <TaskSection
+                        droppableId="progress"
+                        title="In Progress"
+                        tasks={progressTasks}
+                        onDeleteTask={handleDeleteTask}
+                        onStatusChange={handleStatusChange}
+                        onUpdateTask={handleUpdateTask}
+                        isFullWidth={currentPage === 'progress'}
+                      />
+                    )}
+                    {(currentPage === 'dashboard' || currentPage === 'completed') && (
+                      <TaskSection
+                        droppableId="completed"
+                        title="Completed"
+                        tasks={completedTasks}
+                        onDeleteTask={handleDeleteTask}
+                        onStatusChange={handleStatusChange}
+                        isFullWidth={currentPage === 'completed'}
+                      />
+                    )}
                   </motion.div>
                 </DragDropContext>
               </LayoutGroup>
@@ -467,29 +496,6 @@ export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false
 
           </div>
         </motion.div>
-
-        {/* Footer - real-time date/day/year */}
-        <footer className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none">
-          <div className={`mx-auto max-w-7xl px-6 lg:px-8 pb-5 ${sidebarOpen ? 'lg:pl-[280px]' : 'lg:pl-14'
-            } transition-[padding] duration-300`}>
-            <motion.div
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="pointer-events-auto inline-flex items-center gap-2 rounded-full px-4 py-2 bg-white/70 dark:bg-gray-900/45 border border-gray-200/70 dark:border-gray-800/70 backdrop-blur-md shadow-sm text-sm text-gray-700 dark:text-gray-300"
-            >
-              <CalendarIcon className="w-3.5 h-3.5 text-primary-500" />
-              <span className="font-medium">
-                {now.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-              </span>
-              <span className="text-gray-400 dark:text-gray-500">•</span>
-              <Clock className="w-3.5 h-3.5 text-violet-500" />
-              <span className="tabular-nums font-bold">
-                {now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-              </span>
-            </motion.div>
-          </div>
-        </footer>
       </main>
     </div>
   );

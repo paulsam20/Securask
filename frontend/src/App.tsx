@@ -39,7 +39,7 @@ const pageVariants = {
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState('');
-  const [currentPage, setCurrentPage] = useState<'login' | 'register' | 'dashboard' | 'calendar'>('login');
+  const [currentPage, setCurrentPage] = useState<'login' | 'register' | 'dashboard' | 'calendar' | 'active' | 'progress' | 'completed'>('login');
   const [isNotesOpen, setIsNotesOpen] = useState(false);
 
   useEffect(() => {
@@ -65,7 +65,7 @@ function App() {
   };
 
   const handleNavigate = (page: string) => {
-    setCurrentPage(page as 'dashboard' | 'calendar');
+    setCurrentPage(page as any);
   };
 
   return (
@@ -103,7 +103,7 @@ function App() {
                   onLogout={handleLogout}
                   isNotesOpen={isNotesOpen}
                   onNavigate={handleNavigate}
-                  currentPage={currentPage}
+                  currentPage={currentPage === 'dashboard' ? 'dashboard' : (currentPage as any)}
                 />
               )
             ) : currentPage === 'login' ? (

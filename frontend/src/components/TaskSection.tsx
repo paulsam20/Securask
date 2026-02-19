@@ -17,6 +17,7 @@ interface TaskSectionProps {
   onDeleteTask: (id: string) => void;
   onStatusChange: (id: string, newStatus: 'active' | 'progress' | 'completed') => void;
   onUpdateTask?: (id: string, updates: { title?: string; description?: string; priority?: 'high' | 'medium' | 'low'; dueDate?: string }) => void;
+  isFullWidth?: boolean;
 }
 
 const columnAccent: Record<string, string> = {
@@ -38,6 +39,7 @@ export default function TaskSection({
   onDeleteTask,
   onStatusChange,
   onUpdateTask,
+  isFullWidth = false,
 }: TaskSectionProps) {
   const accent = columnAccent[droppableId] ?? columnAccent.active;
   const header = headerAccent[droppableId] ?? headerAccent.active;
@@ -75,7 +77,8 @@ export default function TaskSection({
                 </p>
               </div>
             ) : (
-              <div className="grid gap-3">
+              <div className={`grid gap-3 transition-all duration-300 ${isFullWidth ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'
+                }`}>
                 {tasks.map((task, index) => (
                   <TaskCard
                     key={task.id}
