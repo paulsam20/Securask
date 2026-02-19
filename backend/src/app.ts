@@ -4,6 +4,7 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './swagger/swagger';
 import authRoutes from './routes/authRoutes';
 import taskRoutes from './routes/taskRoutes';
+import stickyNoteRoutes from './routes/stickyNoteRoutes';
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // 3. ROUTES
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
+app.use('/api/sticky-notes', stickyNoteRoutes);
 
 // 4. BASE ROUTE (Optional)
 app.get('/', (req, res) => {

@@ -118,3 +118,33 @@ export const taskAPI = {
     });
   },
 };
+
+// Sticky Notes API (cloud)
+export const stickyNotesAPI = {
+  list: async () => {
+    return fetchWithAuth('/sticky-notes');
+  },
+  create: async (note: { text: string; color: string }) => {
+    return fetchWithAuth('/sticky-notes', {
+      method: 'POST',
+      body: JSON.stringify(note),
+    });
+  },
+  update: async (id: string, updates: { text?: string; color?: string }) => {
+    return fetchWithAuth(`/sticky-notes/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+  },
+  remove: async (id: string) => {
+    return fetchWithAuth(`/sticky-notes/${id}`, {
+      method: 'DELETE',
+    });
+  },
+  reorder: async (orderedIds: string[]) => {
+    return fetchWithAuth('/sticky-notes/reorder', {
+      method: 'PUT',
+      body: JSON.stringify({ orderedIds }),
+    });
+  },
+};

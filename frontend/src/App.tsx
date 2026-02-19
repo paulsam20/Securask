@@ -6,11 +6,13 @@ import { authService } from './services/auth';
 import RegisterPage from './pages/RegisterPage';
 import ThemeToggle from './components/ThemeToggle';
 import ParticleBackground from './components/ParticleBackground';
+import StickyNotes from './components/StickyNotes';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState('');
   const [currentPage, setCurrentPage] = useState<'login' | 'register'>('login');
+  const [isNotesOpen, setIsNotesOpen] = useState(false);
 
   useEffect(() => {
     // Check if user is already logged in
@@ -36,11 +38,14 @@ function App() {
 
   return (
     <>
-      <ThemeToggle />
+      {!isNotesOpen && <ThemeToggle />}
+      {isLoggedIn && (
+        <StickyNotes isOpen={isNotesOpen} onOpenChange={setIsNotesOpen} />
+      )}
       <ParticleBackground />
       <div className="relative z-10 w-full min-h-screen">
         {isLoggedIn ? (
-          <DashboardPage userEmail={userEmail} onLogout={handleLogout} />
+          <DashboardPage userEmail={userEmail} onLogout={handleLogout} isNotesOpen={isNotesOpen} />
         ) : currentPage === 'login' ? (
           <LoginPage
             onLogin={handleLogin}

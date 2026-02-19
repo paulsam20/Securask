@@ -18,6 +18,7 @@ interface Task {
 interface DashboardPageProps {
   userEmail: string;
   onLogout: () => void;
+  isNotesOpen?: boolean;
 }
 
 // Helper: map backend task to frontend Task
@@ -36,7 +37,7 @@ const mapBackendTaskToFrontend = (backendTask: any): Task => {
   };
 };
 
-export default function DashboardPage({ userEmail, onLogout }: DashboardPageProps) {
+export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false }: DashboardPageProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [showNewTask, setShowNewTask] = useState(false);
@@ -171,6 +172,7 @@ export default function DashboardPage({ userEmail, onLogout }: DashboardPageProp
         onLogout={onLogout}
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen((o) => !o)}
+        hideToggle={isNotesOpen}
       />
 
       <main

@@ -5,9 +5,10 @@ interface SidebarProps {
   onLogout: () => void;
   isOpen: boolean;
   onToggle: () => void;
+  hideToggle?: boolean;
 }
 
-export default function Sidebar({ userEmail, onLogout, isOpen, onToggle }: SidebarProps) {
+export default function Sidebar({ userEmail, onLogout, isOpen, onToggle, hideToggle = false }: SidebarProps) {
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard' },
@@ -18,13 +19,15 @@ export default function Sidebar({ userEmail, onLogout, isOpen, onToggle }: Sideb
 
   return (
     <>
-      <button
-        onClick={onToggle}
-        className={`fixed top-4 z-50 bg-primary-500 text-white p-2 rounded-lg hover:bg-primary-600 transition ${isOpen ? 'left-[292px]' : 'left-4'
-          }`}
-      >
-        {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-      </button>
+      {!hideToggle && (
+        <button
+          onClick={onToggle}
+          className={`fixed top-4 z-50 bg-primary-500 text-white p-2 rounded-lg hover:bg-primary-600 transition ${isOpen ? 'left-[292px]' : 'left-4'
+            }`}
+        >
+          {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
+      )}
 
       <div
         className={`fixed inset-y-0 left-0 z-40 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'
