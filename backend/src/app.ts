@@ -6,6 +6,8 @@ import authRoutes from './routes/authRoutes';
 import taskRoutes from './routes/taskRoutes';
 import stickyNoteRoutes from './routes/stickyNoteRoutes';
 import calendarTaskRoutes from './routes/calendarTaskRoutes';
+import { errorHandler } from './middleware/errorHandler';
+import logger from './utils/logger';
 
 const app = express();
 
@@ -17,6 +19,12 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
 }));
 app.use(express.json());
+
+// Request logging middleware
+app.use((req, res, next) => {
+  logger.info(`${req.method} ${req.url}`);
+  next();
+});
 
 // 2. documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -31,5 +39,8 @@ app.use('/api/calendar-tasks', calendarTaskRoutes);
 app.get('/', (req, res) => {
   res.send('Securask API is running...');
 });
+
+// 5. error handling
+app.use(errorHandler);
 
 export default app;

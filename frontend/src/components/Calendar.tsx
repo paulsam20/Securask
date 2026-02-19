@@ -140,6 +140,7 @@ export default function Calendar() {
           date: createdTask.date,
           description: createdTask.description,
           completed: createdTask.completed,
+          source: 'calendar',
         };
         setTasks((prev) => [...prev, task]);
       }
