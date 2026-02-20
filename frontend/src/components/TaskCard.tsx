@@ -24,11 +24,31 @@ const priorityColors = {
 };
 
 const statusStyles = {
-  active: { bg: 'bg-blue-50/50 dark:bg-blue-900/10', border: 'border-blue-200/50 dark:border-blue-800/50' },
-  progress: { bg: 'bg-amber-50/50 dark:bg-amber-900/10', border: 'border-amber-200/50 dark:border-amber-800/50' },
-  completed: { bg: 'bg-green-50/50 dark:bg-green-900/10', border: 'border-green-200/50 dark:border-green-800/50' },
+  active: {
+    bg: 'bg-blue-50/50 dark:bg-blue-900/10',
+    border: 'border-blue-200/50 dark:border-blue-800/50',
+    glow: 'hover:shadow-blue-500/10',
+    hoverBorder: 'hover:border-blue-500/30'
+  },
+  progress: {
+    bg: 'bg-amber-50/50 dark:bg-amber-900/10',
+    border: 'border-amber-200/50 dark:border-amber-800/50',
+    glow: 'hover:shadow-amber-500/10',
+    hoverBorder: 'hover:border-amber-500/30'
+  },
+  completed: {
+    bg: 'bg-green-50/50 dark:bg-green-900/10',
+    border: 'border-green-200/50 dark:border-green-800/50',
+    glow: 'hover:shadow-green-500/10',
+    hoverBorder: 'hover:border-green-500/30'
+  },
 };
 
+/**
+ * TaskCard Component
+ * Represents an individual task in the dashboard.
+ * Supports drag-and-drop, in-place editing, status transitions, and dynamic styling based on priority/status.
+ */
 export default function TaskCard({
   id,
   index,
@@ -42,13 +62,20 @@ export default function TaskCard({
   onUpdateTask,
   onFocus,
 }: TaskCardProps) {
+  // Local state for in-place title/description editing
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(title);
   const [editDescription, setEditDescription] = useState(description ?? '');
+
+  // Current style configuration based on task status (active/progress/completed)
   const s = statusStyles[status];
 
+  // Helper constraint: Tasks can only be edited while not completed
   const isEditable = (status === 'active' || status === 'progress') && onUpdateTask;
 
+  /**
+   * Persists edits and exits edit mode
+   */
   const handleSaveEdit = () => {
     if (editTitle.trim() && onUpdateTask) {
       onUpdateTask(id, { title: editTitle.trim(), description: editDescription.trim() || undefined });
@@ -56,6 +83,10 @@ export default function TaskCard({
     }
   };
 
+  /**
+   * Status Cycler: Determines the next logical step in the task lifecycle
+   * Active -> In Progress -> Completed
+   */
   const getNextStatus = (): 'active' | 'progress' | 'completed' => {
     const order: ('active' | 'progress' | 'completed')[] = ['active', 'progress', 'completed'];
     return order[(order.indexOf(status) + 1) % order.length];
@@ -70,6 +101,7 @@ export default function TaskCard({
           layout
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
+          onDragStart={undefined}
           whileHover={!snapshot.isDragging ? {
             scale: 1.02,
             y: -4,
@@ -80,7 +112,7 @@ export default function TaskCard({
             backdrop-blur-sm transition-shadow duration-300
             ${snapshot.isDragging
               ? 'shadow-2xl scale-[1.03] rotate-1 ring-2 ring-primary-400/60 dark:ring-primary-500/60'
-              : 'hover:shadow-xl hover:shadow-primary-500/10 hover:border-primary-500/30'}
+              : `hover:shadow-xl ${s.glow} ${s.hoverBorder}`}
             dark:text-gray-100
           `}
         >

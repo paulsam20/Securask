@@ -1,13 +1,24 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 
+/**
+ * Swagger Configuration
+ * This file defines the OpenAPI 3.0 specification for the Securask API.
+ * It provides a structured overview of all endpoints, including:
+ * - Request body schemas
+ * - Response formats
+ * - Security requirements (JWT Bearer Auth)
+ * - Parameter definitions
+ */
+
 const options = {
   definition: {
     openapi: '3.0.0',
     info: {
       title: 'Securask API',
       version: '1.0.0',
-      description: 'Secure Task Management API',
+      description: 'Secure Task Management API supporting Kanban boards, Sticky Notes, and Calendars.',
     },
+    // Global Security Configuration
     components: {
       securitySchemes: {
         bearerAuth: {
@@ -17,7 +28,9 @@ const options = {
         },
       },
     },
+    // Endpoint Documentation
     paths: {
+      // 1. Authentication Endpoints
       '/api/auth/register': {
         post: {
           tags: ['Auth'],
@@ -59,16 +72,17 @@ const options = {
           responses: { 200: { description: 'Success' } },
         },
       },
+      // 2. Task Management Endpoints
       '/api/tasks': {
         get: {
           tags: ['Tasks'],
-          summary: 'Get all tasks',
+          summary: 'Get all tasks for the certified user',
           security: [{ bearerAuth: [] }],
           responses: { 200: { description: 'Success' } },
         },
         post: {
           tags: ['Tasks'],
-          summary: 'Create task',
+          summary: 'Create a new task',
           security: [{ bearerAuth: [] }],
           requestBody: {
             content: {
@@ -78,6 +92,8 @@ const options = {
                   properties: {
                     title: { type: 'string' },
                     description: { type: 'string' },
+                    status: { type: 'string', enum: ['active', 'progress', 'completed'] },
+                    priority: { type: 'string', enum: ['high', 'medium', 'low'] },
                   },
                 },
               },
@@ -97,7 +113,7 @@ const options = {
               in: 'path',
               required: true,
               schema: { type: 'string' },
-              description: 'The Task ID',
+              description: 'The MongoDB Object ID of the task',
             },
           ],
           responses: {
@@ -107,7 +123,7 @@ const options = {
         },
         put: {
           tags: ['Tasks'],
-          summary: 'Update a task',
+          summary: 'Update a task document',
           security: [{ bearerAuth: [] }],
           parameters: [
             {
@@ -115,7 +131,7 @@ const options = {
               in: 'path',
               required: true,
               schema: { type: 'string' },
-              description: 'The Task ID (copy this from the GET response)',
+              description: 'The Task ID',
             },
           ],
           requestBody: {
@@ -126,7 +142,8 @@ const options = {
                   properties: {
                     title: { type: 'string' },
                     description: { type: 'string' },
-                    completed: { type: 'boolean' },
+                    status: { type: 'string' },
+                    priority: { type: 'string' },
                   },
                 },
               },
@@ -136,7 +153,7 @@ const options = {
         },
         delete: {
           tags: ['Tasks'],
-          summary: 'Delete a task',
+          summary: 'Remove a task',
           security: [{ bearerAuth: [] }],
           parameters: [
             {
@@ -150,16 +167,17 @@ const options = {
           responses: { 200: { description: 'Deleted successfully' } },
         },
       },
+      // 3. Sticky Notes Endpoints
       '/api/sticky-notes': {
         get: {
           tags: ['Sticky Notes'],
-          summary: 'Get all sticky notes',
+          summary: 'List user notes',
           security: [{ bearerAuth: [] }],
           responses: { 200: { description: 'Success' } },
         },
         post: {
           tags: ['Sticky Notes'],
-          summary: 'Create sticky note',
+          summary: 'Pin a new note',
           security: [{ bearerAuth: [] }],
           requestBody: {
             content: {
@@ -180,7 +198,7 @@ const options = {
       '/api/sticky-notes/reorder': {
         put: {
           tags: ['Sticky Notes'],
-          summary: 'Reorder sticky notes',
+          summary: 'Save drag-and-drop order',
           security: [{ bearerAuth: [] }],
           requestBody: {
             content: {
@@ -200,16 +218,9 @@ const options = {
       '/api/sticky-notes/{id}': {
         put: {
           tags: ['Sticky Notes'],
-          summary: 'Update sticky note',
+          summary: 'Modify note content',
           security: [{ bearerAuth: [] }],
-          parameters: [
-            {
-              name: 'id',
-              in: 'path',
-              required: true,
-              schema: { type: 'string' },
-            },
-          ],
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
           requestBody: {
             content: {
               'application/json': {
@@ -227,29 +238,23 @@ const options = {
         },
         delete: {
           tags: ['Sticky Notes'],
-          summary: 'Delete sticky note',
+          summary: 'Discard note',
           security: [{ bearerAuth: [] }],
-          parameters: [
-            {
-              name: 'id',
-              in: 'path',
-              required: true,
-              schema: { type: 'string' },
-            },
-          ],
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
           responses: { 200: { description: 'Deleted' } },
         },
       },
+      // 4. Calendar Endpoints
       '/api/calendar-tasks': {
         get: {
           tags: ['Calendar Tasks'],
-          summary: 'Get all calendar tasks',
+          summary: 'List user appointments',
           security: [{ bearerAuth: [] }],
           responses: { 200: { description: 'Success' } },
         },
         post: {
           tags: ['Calendar Tasks'],
-          summary: 'Create calendar task',
+          summary: 'Schedule new event',
           security: [{ bearerAuth: [] }],
           requestBody: {
             content: {
@@ -273,16 +278,9 @@ const options = {
       '/api/calendar-tasks/{id}': {
         put: {
           tags: ['Calendar Tasks'],
-          summary: 'Update calendar task',
+          summary: 'Edit event details',
           security: [{ bearerAuth: [] }],
-          parameters: [
-            {
-              name: 'id',
-              in: 'path',
-              required: true,
-              schema: { type: 'string' },
-            },
-          ],
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
           requestBody: {
             content: {
               'application/json': {
@@ -303,16 +301,9 @@ const options = {
         },
         delete: {
           tags: ['Calendar Tasks'],
-          summary: 'Delete calendar task',
+          summary: 'Cancel event',
           security: [{ bearerAuth: [] }],
-          parameters: [
-            {
-              name: 'id',
-              in: 'path',
-              required: true,
-              schema: { type: 'string' },
-            },
-          ],
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
           responses: { 200: { description: 'Deleted' } },
         },
       },

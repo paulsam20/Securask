@@ -1,16 +1,29 @@
+/**
+ * API Service Layer
+ * Centralized module for all backend communications.
+ * Uses the native 'fetch' API with an authentication wrapper.
+ */
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// Helper function to get auth token from localStorage
+/**
+ * getToken
+ * Retrieves the JWT from localStorage for inclusion in request headers.
+ */
 const getToken = (): string | null => {
   return localStorage.getItem('token');
 };
 
-// Helper function to make authenticated requests
+/**
+ * fetchWithAuth
+ * Higher-order helper that automatically attaches the 'Authorization' header
+ * and handles base URL joining and error parsing.
+ */
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   const token = getToken();
   const headers = {
     'Content-Type': 'application/json',
-    ...(token && { Authorization: `Bearer ${token}` }),
+    ...(token && { Authorization: `Bearer ${token}` }), // Attach token if it exists
     ...options.headers,
   };
 
@@ -19,7 +32,9 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
     headers,
   });
 
+  // Global response handler
   if (!response.ok) {
+    // Attempt to extract error message from JSON body
     const error = await response.json().catch(() => ({ message: 'An error occurred' }));
     throw new Error(error.message || `HTTP error! status: ${response.status}`);
   }
@@ -27,14 +42,15 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   return response.json();
 };
 
-// Auth API
+/**
+ * authAPI
+ * Endpoints for user identity management.
+ */
 export const authAPI = {
   login: async (email: string, password: string) => {
     const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
 
@@ -49,9 +65,7 @@ export const authAPI = {
   register: async (username: string, email: string, password: string) => {
     const response = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, email, password }),
     });
 
@@ -64,7 +78,10 @@ export const authAPI = {
   },
 };
 
-// Task API
+/**
+ * taskAPI
+ * Endpoints for Kanban board tasks.
+ */
 export const taskAPI = {
   getTasks: async () => {
     return fetchWithAuth('/tasks');
@@ -81,17 +98,9 @@ export const taskAPI = {
     dueDate?: string;
     status?: 'active' | 'progress' | 'completed';
   }) => {
-    // Map frontend status to backend status
-    const backendStatus = task.status === 'completed' ? 'completed' : 'pending';
     return fetchWithAuth('/tasks', {
       method: 'POST',
-      body: JSON.stringify({
-        title: task.title,
-        description: task.description || '',
-        status: backendStatus,
-        priority: task.priority,
-        dueDate: task.dueDate,
-      }),
+      body: JSON.stringify(task),
     });
   },
 
@@ -102,13 +111,9 @@ export const taskAPI = {
     priority?: 'high' | 'medium' | 'low';
     dueDate?: string;
   }) => {
-    const body: Record<string, unknown> = { ...updates };
-    if (updates.status !== undefined) {
-      body.status = updates.status === 'completed' ? 'completed' : 'pending';
-    }
     return fetchWithAuth(`/tasks/${id}`, {
       method: 'PUT',
-      body: JSON.stringify(body),
+      body: JSON.stringify(updates),
     });
   },
 
@@ -119,7 +124,10 @@ export const taskAPI = {
   },
 };
 
-// Sticky Notes API (cloud)
+/**
+ * stickyNotesAPI
+ * Endpoints for the sidebar quick notes system.
+ */
 export const stickyNotesAPI = {
   list: async () => {
     return fetchWithAuth('/sticky-notes');
@@ -149,7 +157,10 @@ export const stickyNotesAPI = {
   },
 };
 
-// Calendar Tasks API (cloud)
+/**
+ * calendarTaskAPI
+ * Endpoints for appointments and reminders.
+ */
 export const calendarTaskAPI = {
   list: async () => {
     return fetchWithAuth('/calendar-tasks');
@@ -178,4 +189,3 @@ export const calendarTaskAPI = {
     });
   },
 };
-

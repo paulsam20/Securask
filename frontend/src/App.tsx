@@ -10,6 +10,11 @@ import ThemeToggle from './components/ThemeToggle';
 import ParticleBackground from './components/ParticleBackground';
 import StickyNotes from './components/StickyNotes';
 
+/**
+ * pageVariants
+ * Animation definitions for smooth page transitions using Framer Motion.
+ * Features a modern blur-in and slide effect.
+ */
 const pageVariants = {
   initial: {
     opacity: 0,
@@ -36,14 +41,25 @@ const pageVariants = {
   },
 } as const;
 
+/**
+ * App Component
+ * The root container that manages global application state:
+ * - Authentication status
+ * - Routing/Navigation (Simulated via conditional rendering)
+ * - Global UI elements (Particle background, Theme toggle, Sticky notes)
+ */
 function App() {
+  // Global Application State
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState('');
   const [currentPage, setCurrentPage] = useState<'login' | 'register' | 'dashboard' | 'calendar' | 'active' | 'progress' | 'completed'>('login');
-  const [isNotesOpen, setIsNotesOpen] = useState(false);
+  const [isNotesOpen, setIsNotesOpen] = useState(false); // Controls the slide-out sticky notes panel
 
+  /**
+   * Session Check: Verification of persistence on load
+   */
   useEffect(() => {
-    // Check if user is already logged in
+    // If a valid JWT exists in localStorage, auto-login the user
     if (authService.isAuthenticated()) {
       setIsLoggedIn(true);
       setUserEmail('user@example.com');
@@ -64,13 +80,16 @@ function App() {
     setCurrentPage('login');
   };
 
+  /**
+   * Navigation Engine: Updates the current view based on sidebar/router events
+   */
   const handleNavigate = (page: string) => {
     setCurrentPage(page as any);
   };
 
   return (
     <>
-      {/* Fixed Header with Theme Toggle and Sticky Notes */}
+      {/* Global Header UI: Theme and Notes Toggle */}
       {isLoggedIn && (
         <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
           {!isNotesOpen && <ThemeToggle />}
@@ -83,7 +102,10 @@ function App() {
         </div>
       )}
 
+      {/* Persistent Visual Elements */}
       <ParticleBackground />
+
+      {/* Content Wrapper with Page Transitions */}
       <div className="relative z-10 w-full min-h-screen overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.div
@@ -94,6 +116,7 @@ function App() {
             exit="exit"
             className="w-full min-h-screen"
           >
+            {/* Conditional Route Rendering */}
             {isLoggedIn ? (
               currentPage === 'calendar' ? (
                 <CalendarPage userEmail={userEmail} onLogout={handleLogout} onNavigate={handleNavigate} />

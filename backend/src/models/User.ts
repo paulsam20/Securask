@@ -1,22 +1,34 @@
 import { Schema, model, Document } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
-// Strict Type Safety: Define the interface 
+/**
+ * IUser Interface
+ * Defines the user properties and ensures TypeScript type safety for the User model.
+ */
 export interface IUser extends Document {
   username: string;
   email: string;
   password: string;
 }
 
+/**
+ * userSchema
+ * Mongoose schema for the User model.
+ * Includes automatic timestamps (createdAt, updatedAt).
+ */
 const userSchema = new Schema<IUser>({
   username: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
 }, { timestamps: true });
 
-// Modern Async Hook: No 'next' parameter means no 'SaveOptions' error
+/**
+ * Pre-save Middleware
+ * Automatically hashes the user's password before saving to the database.
+ * Only triggers if the password field has been modified.
+ */
 userSchema.pre('save', async function (this: IUser) {
-  // Only hash if modified [cite: 6]
+  // skip hashing if password hasn't changed
   if (!this.isModified('password')) {
     return;
   }
@@ -25,7 +37,7 @@ userSchema.pre('save', async function (this: IUser) {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
   } catch (error) {
-    // Throwing here effectively stops the save and returns an error
+    // If hashing fails, prevent the save operation
     throw error;
   }
 });

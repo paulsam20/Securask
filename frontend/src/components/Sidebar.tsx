@@ -1,22 +1,35 @@
 import { Menu, X, CheckCircle, LogOut, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+/**
+ * Sidebar Component
+ * Provides primary navigation and workload summaries.
+ * Features:
+ * - Collapsible state for mobile/small screens
+ * - Live task counts (Active, In-Progress, Completed)
+ * - Priority distribution breakdown
+ * - Dark mode compatible styling
+ */
 interface SidebarProps {
   userEmail: string;
   onLogout: () => void;
-  isOpen: boolean;
+  isOpen: boolean; // Managed by parent (Dashboard)
   onToggle: () => void;
-  hideToggle?: boolean;
+  hideToggle?: boolean; // Hides the hamburger menu when necessary
   counts?: {
     active: number;
     progress: number;
     completed: number;
     priority: { high: number; medium: number; low: number };
   };
-  onNavigate?: (page: string) => void;
-  currentPage?: string;
+  onNavigate?: (page: string) => void; // Simulated routing
+  currentPage?: string; // Highlighting logic
 }
 
+/**
+ * navVariants
+ * Staggered animation for nav item appearance
+ */
 const navVariants = {
   hidden: { opacity: 0, x: -10 },
   visible: (i: number) => ({
@@ -30,6 +43,7 @@ const navVariants = {
 
 export default function Sidebar({ userEmail, onLogout, isOpen, onToggle, hideToggle = false, counts, onNavigate, currentPage }: SidebarProps) {
 
+  // Centralized navigation structure
   const navItems = [
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'active', label: 'Active Tasks' },
@@ -41,6 +55,7 @@ export default function Sidebar({ userEmail, onLogout, isOpen, onToggle, hideTog
   return (
     <>
       <AnimatePresence>
+        {/* Hamburger Menu Trigger: Visible only when sidebar is closed */}
         {!hideToggle && !isOpen && (
           <motion.button
             initial={{ opacity: 0, scale: 0.8 }}
@@ -56,6 +71,7 @@ export default function Sidebar({ userEmail, onLogout, isOpen, onToggle, hideTog
         )}
       </AnimatePresence>
 
+      {/* Main Sidebar Panel */}
       <motion.div
         initial={false}
         animate={{ x: isOpen ? 0 : -280 }}
@@ -63,6 +79,7 @@ export default function Sidebar({ userEmail, onLogout, isOpen, onToggle, hideTog
         className="fixed inset-y-0 left-0 z-40 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 w-[280px] shadow-2xl lg:shadow-none"
       >
         <div className="flex flex-col h-full p-6 overflow-hidden">
+          {/* Brand/Logo Section */}
           <div className="mb-8 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 flex-1">
               <motion.div
@@ -83,12 +100,14 @@ export default function Sidebar({ userEmail, onLogout, isOpen, onToggle, hideTog
                 )}
               </AnimatePresence>
             </div>
+            {/* Close Button: Mobile only */}
             {isOpen && !hideToggle && (
               <motion.button
                 whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={onToggle}
                 className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-xl transition-colors"
+                aria-label="Close menu"
               >
                 <X className="w-5 h-5" />
               </motion.button>
@@ -97,6 +116,7 @@ export default function Sidebar({ userEmail, onLogout, isOpen, onToggle, hideTog
 
           {isOpen && (
             <>
+              {/* Navigation Links */}
               <nav className="flex-1 overflow-y-auto custom-scrollbar">
                 <ul className="space-y-1.5">
                   {navItems.map((item, i) => (
@@ -112,8 +132,8 @@ export default function Sidebar({ userEmail, onLogout, isOpen, onToggle, hideTog
                         whileTap={{ scale: 0.98 }}
                         onClick={() => onNavigate?.(item.id)}
                         className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 transition-all font-semibold ${currentPage === item.id
-                            ? 'bg-primary-500 text-white shadow-md shadow-primary-500/20'
-                            : 'text-gray-600 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-600 dark:hover:text-primary-400'
+                          ? 'bg-primary-500 text-white shadow-md shadow-primary-500/20'
+                          : 'text-gray-600 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-600 dark:hover:text-primary-400'
                           }`}
                       >
                         {item.icon === 'calendar' && <Calendar className="w-5 h-5 flex-shrink-0" />}
@@ -123,6 +143,7 @@ export default function Sidebar({ userEmail, onLogout, isOpen, onToggle, hideTog
                   ))}
                 </ul>
 
+                {/* Statistics Overview: Task distribution metrics */}
                 {counts && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
@@ -150,7 +171,7 @@ export default function Sidebar({ userEmail, onLogout, isOpen, onToggle, hideTog
                     </div>
 
                     <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-3 px-2">
-                      Priority
+                      Priority Focus
                     </p>
                     <div className="space-y-2">
                       {[
@@ -172,6 +193,7 @@ export default function Sidebar({ userEmail, onLogout, isOpen, onToggle, hideTog
                 )}
               </nav>
 
+              {/* Account / Footer Section */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -201,6 +223,7 @@ export default function Sidebar({ userEmail, onLogout, isOpen, onToggle, hideTog
         </div>
       </motion.div>
 
+      {/* Overlay: Closes sidebar when clicking outside on mobile */}
       <AnimatePresence>
         {isOpen && (
           <motion.div

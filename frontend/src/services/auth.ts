@@ -1,21 +1,34 @@
-// Auth service to manage authentication state
+/**
+ * authService
+ * Utility module for local session management.
+ * Interfaces with the browser's localStorage to persist the authentication token.
+ */
 export const authService = {
-  // Save token to localStorage
+  /**
+   * Persist the JWT to local storage.
+   */
   setToken: (token: string) => {
     localStorage.setItem('token', token);
   },
 
-  // Get token from localStorage
+  /**
+   * Retrieve the current session token.
+   */
   getToken: (): string | null => {
     return localStorage.getItem('token');
   },
 
-  // Remove token from localStorage
+  /**
+   * Clear the session (used on Logout).
+   */
   removeToken: () => {
     localStorage.removeItem('token');
   },
 
-  // Check if user is authenticated
+  /**
+   * Quick check for current auth status.
+   * Note: This only checks for the presence of a token, not its validity.
+   */
   isAuthenticated: (): boolean => {
     return !!localStorage.getItem('token');
   },

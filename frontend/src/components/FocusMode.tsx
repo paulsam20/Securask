@@ -19,27 +19,47 @@ const DURATIONS = [
     { label: '60m', minutes: 60 },
 ];
 
+/**
+ * FocusMode Component
+ * Implements a Pomodoro-style distraction-free timer for a specific task.
+ * Features customizable durations, focus/break cycles, and status-aware styling.
+ */
 export default function FocusMode({ task, onComplete, onCancel }: FocusModeProps) {
-    const [isSettingUp, setIsSettingUp] = useState(true);
-    const [selectedMinutes, setSelectedMinutes] = useState(25);
-    const [timeLeft, setTimeLeft] = useState(25 * 60);
-    const [isActive, setIsActive] = useState(false);
-    const [isBreak, setIsBreak] = useState(false);
-    const [sessionsCompleted, setSessionsCompleted] = useState(0);
+    // Component State
+    const [isSettingUp, setIsSettingUp] = useState(true); // Phase 1: Choosing duration
+    const [selectedMinutes, setSelectedMinutes] = useState(25); // User-selected goal
+    const [timeLeft, setTimeLeft] = useState(25 * 60); // Current countdown in seconds
+    const [isActive, setIsActive] = useState(false); // Timer play/pause state
+    const [isBreak, setIsBreak] = useState(false); // Focus vs Break mode
+    const [sessionsCompleted, setSessionsCompleted] = useState(0); // Pomodoro cycle counter
 
+    /**
+     * Navigation: Transitions from setup screen to active timer
+     */
     const startFocus = () => {
         setTimeLeft(selectedMinutes * 60);
         setIsSettingUp(false);
         setIsActive(true);
     };
 
+    /**
+     * Timer Control: Toggles between active and paused
+     */
     const toggleTimer = () => setIsActive(!isActive);
 
+    /**
+     * Reset Logic: Returns timer to current mode's start time
+     */
     const resetTimer = useCallback(() => {
         setIsActive(false);
         setTimeLeft(isBreak ? 5 * 60 : selectedMinutes * 60);
     }, [isBreak, selectedMinutes]);
 
+    /**
+     * High-Precision Timer Effect
+     * Uses Date.now() delta to avoid JavaScript interval drift.
+     * Updates every 100ms for a smooth, responsive feel.
+     */
     useEffect(() => {
         if (!isActive || isSettingUp) return;
 
@@ -55,33 +75,43 @@ export default function FocusMode({ task, onComplete, onCancel }: FocusModeProps
             if (newTimeLeft === 0) {
                 window.clearInterval(interval);
             }
-        }, 100); // Check more frequently for responsiveness
+        }, 100);
 
         return () => window.clearInterval(interval);
     }, [isActive, isSettingUp]);
 
+    /**
+     * Lifecycle/Task Completion Effect
+     * Handles transitioning between Focus and Break modes when timer hits zero.
+     * Also triggers the onComplete callback when a focus session ends.
+     */
     useEffect(() => {
         if (timeLeft === 0 && isActive && !isSettingUp) {
             setIsActive(false);
             if (!isBreak) {
+                // Focus session ended: increment count, switch to break, mark task complete
                 setSessionsCompleted((prev) => prev + 1);
                 setIsBreak(true);
                 setTimeLeft(5 * 60);
-                // Call onComplete when the focus session ends
                 onComplete(task.id);
             } else {
+                // Break session ended: return to focus mode
                 setIsBreak(false);
                 setTimeLeft(selectedMinutes * 60);
             }
         }
     }, [timeLeft, isActive, isBreak, isSettingUp, task.id, onComplete, selectedMinutes]);
 
+    /**
+     * Formatting helper: Converts seconds to MM:SS string
+     */
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
 
+    // Calculate progress percentage for SVG ring animation
     const progress = isBreak
         ? (timeLeft / (5 * 60)) * 100
         : (timeLeft / (selectedMinutes * 60)) * 100;

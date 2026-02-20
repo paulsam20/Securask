@@ -1,7 +1,9 @@
 import { Response } from 'express';
 import Task from '../models/Task';
 
-// GET all tasks for logged-in user
+/**
+ * Fetch all tasks owned by the authenticated user.
+ */
 export const getTasks = async (req: any, res: Response) => {
   try {
     const tasks = await Task.find({ user: req.user._id });
@@ -12,11 +14,16 @@ export const getTasks = async (req: any, res: Response) => {
   }
 };
 
-// GET single task
+/**
+ * Fetch a specific task by its ID.
+ * Ensures that the requester is the owner of the task.
+ */
 export const getTaskById = async (req: any, res: Response) => {
   try {
     const task = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ message: 'Task not found' });
+
+    // Security check: Verify ownership
     if (task.user.toString() !== req.user._id.toString()) {
       return res.status(401).json({ message: 'Not authorized' });
     }
@@ -27,18 +34,21 @@ export const getTaskById = async (req: any, res: Response) => {
   }
 };
 
-// CREATE task
+/**
+ * Create a new task.
+ * Associates the task with the currently logged-in user.
+ */
 export const createTask = async (req: any, res: Response) => {
   try {
     const { title, description, priority, dueDate } = req.body;
     if (!title) return res.status(400).json({ message: 'Title is required' });
-    
-    const task = await Task.create({ 
-      title, 
-      description: description || '', 
+
+    const task = await Task.create({
+      title,
+      description: description || '',
       priority: priority || 'medium',
       dueDate: dueDate || undefined,
-      user: req.user._id 
+      user: req.user._id // Critical: Link task to the user
     });
     res.status(201).json(task);
   } catch (error) {
@@ -47,17 +57,22 @@ export const createTask = async (req: any, res: Response) => {
   }
 };
 
-// UPDATE task
+/**
+ * Update task properties.
+ * Supports partial updates (only fields provided in req.body are changed).
+ * Includes ownership verification.
+ */
 export const updateTask = async (req: any, res: Response) => {
   try {
     const task = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ message: 'Task not found' });
 
+    // Security check: Verify ownership
     if (task.user.toString() !== req.user._id.toString()) {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
-    // Only update fields that are provided
+    // Dynamic field update
     const { title, description, status, priority, dueDate } = req.body;
     if (title !== undefined) task.title = title;
     if (description !== undefined) task.description = description;
@@ -73,12 +88,16 @@ export const updateTask = async (req: any, res: Response) => {
   }
 };
 
-// DELETE task
+/**
+ * Permanently delete a task.
+ * Includes ownership verification.
+ */
 export const deleteTask = async (req: any, res: Response) => {
   try {
     const task = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ message: 'Task not found' });
 
+    // Security check: Verify ownership
     if (task.user.toString() !== req.user._id.toString()) {
       return res.status(401).json({ message: 'Not authorized' });
     }

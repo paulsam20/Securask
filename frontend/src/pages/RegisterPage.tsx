@@ -2,15 +2,20 @@ import { useState } from 'react';
 import { CheckCircle, UserPlus, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { authAPI } from '../services/api';
-
 import ShuffleText from '../components/ShuffleText';
 
+/**
+ * RegisterPage Component
+ * Provides a user-friendly interface for creating new accounts.
+ * Mirrored aesthetic of LoginPage but with a secondary "violet" theme shift.
+ */
 interface RegisterPageProps {
     onSwitchToLogin: () => void;
 }
 
 const marqueeText = "Securask • Task Management • Secure • Efficient • Organized • Productive • ";
 
+// Animation configs for entry
 const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -28,14 +33,22 @@ const itemVariants = {
 };
 
 export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
+    // Form Inputs
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+
+    // UI State
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
 
+    /**
+     * handleSubmit
+     * Triggers the registration logic. 
+     * On success, shows a message and redirects back to login after a short delay.
+     */
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (username && email && password) {
@@ -43,10 +56,13 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
             setError('');
             setSuccessMessage('');
             try {
+                // Backend API call
                 await authAPI.register(username, email, password);
                 setSuccessMessage('Registration successful! Redirecting to login…');
+                // Auto-transition back to login so they can sign in
                 setTimeout(() => onSwitchToLogin(), 1500);
             } catch (err: any) {
+                // Display error (e.g., "User already exists")
                 setError(err.message || 'Registration failed. Please try again.');
                 setIsLoading(false);
             }
@@ -56,10 +72,12 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
     return (
         <div className="min-h-screen flex transition-colors duration-300">
 
-            {/* ── Left branding panel ── */}
+            {/* ── Left Branding Panel: Visuals and Marquees ── */}
             <div className="hidden lg:flex lg:w-1/2 relative flex-col overflow-hidden
                       bg-gradient-to-br from-violet-600 via-primary-500 to-primary-600
                       dark:from-gray-900 dark:via-violet-900 dark:to-primary-950">
+
+                {/* Decorative Moving Orbs */}
                 <motion.div
                     animate={{ scale: [1, 1.1, 1], rotate: [0, -90, 0] }}
                     transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
@@ -71,25 +89,21 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
                     className="absolute bottom-0 left-0 w-80 h-80 rounded-full bg-primary-400/20 blur-2xl"
                 />
 
-                {/* Top marquee */}
+                {/* Vertical Branding Headers (Marquees) */}
                 <div className="relative z-10 overflow-hidden border-b border-white/10">
                     <div className="marquee-container">
-                        <div className="marquee-content">
-                            {marqueeText.repeat(5)}
-                        </div>
-                        <div className="marquee-content" aria-hidden="true">
-                            {marqueeText.repeat(5)}
-                        </div>
+                        <div className="marquee-content">{marqueeText.repeat(5)}</div>
+                        <div className="marquee-content" aria-hidden="true">{marqueeText.repeat(5)}</div>
                     </div>
                 </div>
 
-                {/* Center logo and tagline */}
+                {/* Hero Section */}
                 <div className="relative z-10 flex-1 flex items-center justify-center px-16">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.8 }}
-                        className="text-white text-center max-w-md"
+                        className="text-white text-center max-w-md font-manrope"
                     >
                         <div className="flex items-center justify-center gap-3 mb-6">
                             <motion.div
@@ -107,20 +121,15 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
                     </motion.div>
                 </div>
 
-                {/* Bottom marquee */}
                 <div className="relative z-10 overflow-hidden border-t border-white/10">
                     <div className="marquee-container marquee-reverse">
-                        <div className="marquee-content">
-                            {marqueeText.repeat(5)}
-                        </div>
-                        <div className="marquee-content" aria-hidden="true">
-                            {marqueeText.repeat(5)}
-                        </div>
+                        <div className="marquee-content">{marqueeText.repeat(5)}</div>
+                        <div className="marquee-content" aria-hidden="true">{marqueeText.repeat(5)}</div>
                     </div>
                 </div>
             </div>
 
-            {/* ── Right form panel ── */}
+            {/* ── Right Form Panel: Registration Inputs ── */}
             <div className="flex-1 lg:w-1/2 flex items-center justify-center p-8
                       bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
                 <motion.div
@@ -130,7 +139,7 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
                     className="w-full max-w-md"
                 >
 
-                    {/* Logo mobile */}
+                    {/* Branding for mobile viewers */}
                     <div className="flex lg:hidden justify-center mb-8">
                         <motion.div
                             whileHover={{ scale: 1.1 }}
@@ -140,7 +149,7 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
                         </motion.div>
                     </div>
 
-                    <motion.div variants={itemVariants} className="mb-8">
+                    <motion.div variants={itemVariants} className="mb-8 font-manrope">
                         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Create Account</h1>
                         <p className="text-gray-500 dark:text-gray-400 mt-1">Join Securask — it's free</p>
                     </motion.div>
@@ -150,7 +159,7 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
                         onSubmit={handleSubmit}
                         className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700 transition-colors duration-300"
                     >
-
+                        {/* Username Input */}
                         <motion.div variants={itemVariants} className="mb-5">
                             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                                 Username
@@ -165,6 +174,7 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
                             />
                         </motion.div>
 
+                        {/* Email Input */}
                         <motion.div variants={itemVariants} className="mb-5">
                             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                                 Email Address
@@ -179,6 +189,7 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
                             />
                         </motion.div>
 
+                        {/* Password Input with Visibility Switch */}
                         <motion.div variants={itemVariants} className="mb-6 relative">
                             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                                 Password
@@ -203,6 +214,7 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
                         </motion.div>
 
                         <AnimatePresence>
+                            {/* Animated Error/Success Messaging */}
                             {error && (
                                 <motion.div
                                     initial={{ opacity: 0, height: 0 }}
@@ -231,11 +243,12 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
                             whileTap={{ scale: 0.98 }}
                             type="submit"
                             disabled={isLoading}
-                            className="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold py-3 rounded-lg transition duration-200 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-primary-500/30"
+                            className="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold py-3 rounded-lg transition duration-200 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-primary-500/30 font-manrope"
                         >
                             {isLoading ? 'Creating Account…' : <><UserPlus size={20} /> Sign Up</>}
                         </motion.button>
 
+                        {/* Back Link to Login */}
                         <motion.div variants={itemVariants} className="mt-6 text-center">
                             <button
                                 type="button"

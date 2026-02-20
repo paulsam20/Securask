@@ -9,10 +9,24 @@ import {
 import { protect } from '../middleware/authMiddleware';
 
 const router = express.Router();
-// sticky note routes
-router.route('/').get(protect, listStickyNotes).post(protect, createStickyNote);
-router.route('/reorder').put(protect, reorderStickyNotes);
-router.route('/:id').put(protect, updateStickyNote).delete(protect, deleteStickyNote);
+
+/**
+ * Sticky Note Routes
+ * Protected routes for managing user-specific quick notes.
+ */
+
+// Base endpoints: List all notes and Create a new one
+router.route('/')
+  .get(protect, listStickyNotes)
+  .post(protect, createStickyNote);
+
+// Bulk order update endpoint
+router.route('/reorder')
+  .put(protect, reorderStickyNotes);
+
+// Single note endpoints: Update state and Delete
+router.route('/:id')
+  .put(protect, updateStickyNote)
+  .delete(protect, deleteStickyNote);
 
 export default router;
-

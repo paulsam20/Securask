@@ -1,6 +1,10 @@
 import { Droppable } from '@hello-pangea/dnd';
 import TaskCard from './TaskCard';
 
+/**
+ * Task Interface
+ * Consistent with the Backend model.
+ */
 interface Task {
   id: string;
   title: string;
@@ -10,17 +14,26 @@ interface Task {
   status: 'active' | 'progress' | 'completed';
 }
 
+/**
+ * TaskSection Component
+ * Represents a single column in the Kanban board (Active, In-Progress, or Completed).
+ * Integrates with @hello-pangea/dnd to enable drag-and-drop functionality.
+ */
 interface TaskSectionProps {
-  droppableId: string;
+  droppableId: string; // Must match one of the task statuses
   title: string;
-  tasks: Task[];
+  tasks: Task[]; // List of tasks assigned to this column
   onDeleteTask: (id: string) => void;
   onStatusChange: (id: string, newStatus: 'active' | 'progress' | 'completed') => void;
   onUpdateTask?: (id: string, updates: { title?: string; description?: string; priority?: 'high' | 'medium' | 'low'; dueDate?: string }) => void;
   onFocus?: (task: { id: string; title: string; description?: string }) => void;
-  isFullWidth?: boolean;
+  isFullWidth?: boolean; // Toggles between single-column and multi-column grid layouts
 }
 
+/**
+ * Accent Palettes
+ * Dynamic styling maps that change the column theme based on status.
+ */
 const columnAccent: Record<string, string> = {
   active: 'from-blue-500/10  to-blue-400/5  dark:from-blue-800/20 dark:to-blue-900/10  border-blue-200   dark:border-blue-800',
   progress: 'from-amber-500/10 to-amber-400/5 dark:from-amber-800/20 dark:to-amber-900/10 border-amber-200  dark:border-amber-800',
@@ -43,12 +56,13 @@ export default function TaskSection({
   onFocus,
   isFullWidth = false,
 }: TaskSectionProps) {
+  // Resolve dynamic styles
   const accent = columnAccent[droppableId] ?? columnAccent.active;
   const header = headerAccent[droppableId] ?? headerAccent.active;
 
   return (
     <div className={`flex flex-col h-full bg-gradient-to-b ${accent} border rounded-xl p-4 transition-colors duration-300`}>
-      {/* Column header */}
+      {/* Column Header: Title and Task Count badge */}
       <div className="flex items-center gap-3 mb-4">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white transition-colors flex items-center gap-2">
           {title}
@@ -58,7 +72,7 @@ export default function TaskSection({
         </h2>
       </div>
 
-      {/* Drop zone */}
+      {/* DND Drop Zone: The 'Droppable' area where TaskCards can be moved to/from */}
       <Droppable droppableId={droppableId}>
         {(provided, snapshot) => (
           <div
@@ -67,10 +81,11 @@ export default function TaskSection({
             className={`
               flex-1 min-h-[120px] overflow-y-auto rounded-lg transition-all duration-200
               ${snapshot.isDraggingOver
-                ? 'bg-white/50 dark:bg-white/5 ring-2 ring-primary-400/50 dark:ring-primary-500/40'
+                ? 'bg-white/50 dark:bg-white/5 ring-2 ring-primary-400/50 dark:ring-primary-500/40' // Highlighting when hovered with a card
                 : ''}
             `}
           >
+            {/* Empty State Illustration */}
             {tasks.length === 0 && !snapshot.isDraggingOver ? (
               <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-8 text-center transition-colors h-full flex flex-col items-center justify-center">
                 <p className="text-gray-500 dark:text-gray-400 font-medium">No tasks yet</p>
@@ -79,6 +94,7 @@ export default function TaskSection({
                 </p>
               </div>
             ) : (
+              // Task Grid Layout
               <div className={`grid gap-3 transition-all duration-300 ${isFullWidth ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'
                 }`}>
                 {tasks.map((task, index) => (
@@ -95,6 +111,7 @@ export default function TaskSection({
                 {provided.placeholder}
               </div>
             )}
+            {/* The placeholder maintains the column height during drops */}
             {tasks.length > 0 && provided.placeholder}
           </div>
         )}

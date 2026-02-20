@@ -57,13 +57,14 @@ const childVariants = {
 };
 
 export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false, onNavigate, currentPage }: DashboardPageProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [showNewTask, setShowNewTask] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [now, setNow] = useState(() => new Date());
-  const [focusedTask, setFocusedTask] = useState<{ id: string; title: string; description?: string } | null>(null);
+  // Page State Management
+  const [sidebarOpen, setSidebarOpen] = useState(true); // Toggle for navigation sidebar
+  const [tasks, setTasks] = useState<Task[]>([]); // Central state for all user tasks
+  const [showNewTask, setShowNewTask] = useState(false); // Modal toggle for task creation
+  const [isLoading, setIsLoading] = useState(true); // Data fetching state
+  const [error, setError] = useState(''); // Error feedback for user
+  const [now, setNow] = useState(() => new Date()); // Clock for time-based UI updates
+  const [focusedTask, setFocusedTask] = useState<{ id: string; title: string; description?: string } | null>(null); // State to trigger FocusMode overlay
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
@@ -111,15 +112,19 @@ export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false
   }, [tasks]);
 
   // ── Drag & Drop ────────────────────────────────────────────────────────────
+  /**
+   * Core Interactivity: Handle drag-and-drop between columns
+   * Uses optimistic updates for a snappy UI feel.
+   */
   const onDragEnd = useCallback(
     async (result: DropResult) => {
       const { source, destination, draggableId } = result;
-      if (!destination) return;
+      if (!destination) return; // Dropped outside valid column
 
       const srcCol = source.droppableId as 'active' | 'progress' | 'completed';
       const destCol = destination.droppableId as 'active' | 'progress' | 'completed';
 
-      // Build ordered column snapshots
+      // Prepare snapshots of current columns for manipulation
       const cols: Record<string, Task[]> = {
         active: [...activeTasks],
         progress: [...progressTasks],
@@ -129,21 +134,21 @@ export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false
       const movedTask = cols[srcCol].find((t) => t.id === draggableId);
       if (!movedTask) return;
 
-      // Remove from source & insert into destination
+      // Update local state arrays (Remove from source, add to destination)
       cols[srcCol].splice(source.index, 1);
       const updatedTask = { ...movedTask, status: destCol };
       cols[destCol].splice(destination.index, 0, updatedTask);
 
-      // Optimistically update UI
+      // Optimistically update UI state immediately
       setTasks([...cols.active, ...cols.progress, ...cols.completed]);
 
-      // Persist to backend only if column changed
+      // Sync change with backend if moving between different columns
       if (srcCol !== destCol) {
         try {
           await taskAPI.updateTask(draggableId, { status: destCol });
         } catch (err: any) {
           setError(err.message || 'Failed to update task');
-          fetchTasks(); // revert on failure
+          fetchTasks(); // Hard refresh to revert UI on error
         }
       }
     },

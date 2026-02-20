@@ -52,7 +52,9 @@ export default function StickyNotes({
 
   const togglePanel = () => onOpenChange(!isOpen);
 
-  // Load notes from cloud when opening
+  /**
+   * Data Layer: Load notes from cloud when the component opens
+   */
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
@@ -62,6 +64,7 @@ export default function StickyNotes({
         setError('');
         const data = await stickyNotesAPI.list();
         if (cancelled) return;
+        // Transform backend fields (_id vs id) to uniform local Note interface
         const normalized: Note[] = (Array.isArray(data) ? data : []).map((n: any) => ({
           id: n._id || n.id,
           text: n.text || '',
@@ -267,6 +270,7 @@ export default function StickyNotes({
                               ref={providedDraggable.innerRef}
                               {...providedDraggable.draggableProps}
                               {...providedDraggable.dragHandleProps}
+                              onDragStart={undefined} // Resolve conflict between dnd and framer-motion props
                               className={`
                                 rounded-2xl border p-4
                                 ${noteCardClasses[note.color]}

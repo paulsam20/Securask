@@ -3,9 +3,17 @@ import { CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { authAPI } from '../services/api';
 import { authService } from '../services/auth';
-
 import ShuffleText from '../components/ShuffleText';
 
+/**
+ * LoginPage Component
+ * Handles user authentication.
+ * Features:
+ * - High-end branding panel with CSS Marquees
+ * - Shuffle text animations for headlines
+ * - Form validation and error handlng
+ * - Interactive Framer Motion transitions
+ */
 interface LoginPageProps {
   onLogin: (email: string, user: any) => void;
   onSwitchToRegister: () => void;
@@ -13,6 +21,7 @@ interface LoginPageProps {
 
 const marqueeText = "Securask • Task Management • Secure • Efficient • Organized • Productive • ";
 
+// Staggered entry animation for the form items
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -30,22 +39,30 @@ const itemVariants = {
 };
 
 export default function LoginPage({ onLogin, onSwitchToRegister }: LoginPageProps) {
+  // Local Form State
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false); // Toggles password visibility
+  const [isLoading, setIsLoading] = useState(false); // Controls loading indicators and button disabling
+  const [error, setError] = useState(''); // Stores validation/API errors
 
+  /**
+   * Submission: Validates credentials against the backend API
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (email && password) {
       setIsLoading(true);
       setError('');
       try {
+        // API Call to register/login route
         const response = await authAPI.login(email, password);
+        // Persist token in localStorage
         authService.setToken(response.token);
+        // Inform App.tsx of successful login
         onLogin(email, response.user);
       } catch (err: any) {
+        // Feedback on failure
         setError(err.message || 'Login failed. Please try again.');
         setIsLoading(false);
       }
@@ -55,11 +72,12 @@ export default function LoginPage({ onLogin, onSwitchToRegister }: LoginPageProp
   return (
     <div className="min-h-screen flex transition-colors duration-300">
 
-      {/* ── Left branding panel (hidden on mobile) ── */}
+      {/* ── Left Branding Panel: Visual identity, marquees, and blobs ── */}
       <div className="hidden lg:flex lg:w-1/2 relative flex-col overflow-hidden
                       bg-gradient-to-br from-primary-600 via-primary-500 to-violet-600
                       dark:from-gray-900 dark:via-primary-900 dark:to-violet-950">
-        {/* Decorative blobs */}
+
+        {/* Animated Background Orbs */}
         <motion.div
           animate={{ scale: [1, 1.1, 1], rotate: [0, 90, 0] }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
@@ -71,19 +89,15 @@ export default function LoginPage({ onLogin, onSwitchToRegister }: LoginPageProp
           className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-violet-400/20 blur-2xl"
         />
 
-        {/* Top marquee */}
+        {/* Top Scrolling Marquee */}
         <div className="relative z-10 overflow-hidden border-b border-white/10">
           <div className="marquee-container">
-            <div className="marquee-content">
-              {marqueeText.repeat(5)}
-            </div>
-            <div className="marquee-content" aria-hidden="true">
-              {marqueeText.repeat(5)}
-            </div>
+            <div className="marquee-content">{marqueeText.repeat(5)}</div>
+            <div className="marquee-content" aria-hidden="true">{marqueeText.repeat(5)}</div>
           </div>
         </div>
 
-        {/* Center logo and tagline */}
+        {/* Hero Content with Shuffle Animation */}
         <div className="relative z-10 flex-1 flex items-center justify-center px-16">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -107,20 +121,16 @@ export default function LoginPage({ onLogin, onSwitchToRegister }: LoginPageProp
           </motion.div>
         </div>
 
-        {/* Bottom marquee */}
+        {/* Bottom Scrolling Marquee (Reverse direction) */}
         <div className="relative z-10 overflow-hidden border-t border-white/10">
           <div className="marquee-container marquee-reverse">
-            <div className="marquee-content">
-              {marqueeText.repeat(5)}
-            </div>
-            <div className="marquee-content" aria-hidden="true">
-              {marqueeText.repeat(5)}
-            </div>
+            <div className="marquee-content">{marqueeText.repeat(5)}</div>
+            <div className="marquee-content" aria-hidden="true">{marqueeText.repeat(5)}</div>
           </div>
         </div>
       </div>
 
-      {/* ── Right form panel ── */}
+      {/* ── Right Form Panel: User input and validation ── */}
       <div className="flex-1 lg:w-1/2 flex items-center justify-center p-8
                       bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
         <motion.div
@@ -130,7 +140,7 @@ export default function LoginPage({ onLogin, onSwitchToRegister }: LoginPageProp
           className="w-full max-w-md"
         >
 
-          {/* Logo (mobile only) */}
+          {/* Logo (Visible only on mobile/tablet) */}
           <div className="flex lg:hidden justify-center mb-8">
             <motion.div
               whileHover={{ scale: 1.1 }}
@@ -140,7 +150,7 @@ export default function LoginPage({ onLogin, onSwitchToRegister }: LoginPageProp
             </motion.div>
           </div>
 
-          <motion.div variants={itemVariants} className="mb-8">
+          <motion.div variants={itemVariants} className="mb-8 font-manrope">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Welcome back</h1>
             <p className="text-gray-500 dark:text-gray-400 mt-1">Sign in to your Securask account</p>
           </motion.div>
@@ -150,7 +160,7 @@ export default function LoginPage({ onLogin, onSwitchToRegister }: LoginPageProp
             onSubmit={handleSubmit}
             className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700 transition-colors duration-300"
           >
-
+            {/* Email Input */}
             <motion.div variants={itemVariants} className="mb-5">
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Email Address
@@ -165,6 +175,7 @@ export default function LoginPage({ onLogin, onSwitchToRegister }: LoginPageProp
               />
             </motion.div>
 
+            {/* Password Input with Visibility Toggle */}
             <motion.div variants={itemVariants} className="mb-6 relative">
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Password
@@ -188,6 +199,7 @@ export default function LoginPage({ onLogin, onSwitchToRegister }: LoginPageProp
               </div>
             </motion.div>
 
+            {/* Error Message Feedback */}
             {error && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
@@ -208,6 +220,7 @@ export default function LoginPage({ onLogin, onSwitchToRegister }: LoginPageProp
               {isLoading ? 'Signing in…' : 'Sign In'}
             </motion.button>
 
+            {/* Switch to Registration Link */}
             <motion.div variants={itemVariants} className="mt-6 text-center">
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Don't have an account?{' '}

@@ -1,6 +1,10 @@
 import { Response } from 'express';
 import CalendarTask from '../models/CalendarTask';
 
+/**
+ * Retrieve all calendar events/tasks for the user.
+ * Sorted chronologically by date and then time.
+ */
 export const getCalendarTasks = async (req: any, res: Response) => {
     try {
         const tasks = await CalendarTask.find({ user: req.user._id }).sort({ date: 1, time: 1 });
@@ -11,6 +15,10 @@ export const getCalendarTasks = async (req: any, res: Response) => {
     }
 };
 
+/**
+ * Create a new calendar entry.
+ * Validates that title, time, and date are present.
+ */
 export const createCalendarTask = async (req: any, res: Response) => {
     try {
         const { title, time, date, description } = req.body;
@@ -34,10 +42,16 @@ export const createCalendarTask = async (req: any, res: Response) => {
     }
 };
 
+/**
+ * Update various properties of a calendar task.
+ * Includes ownership verification.
+ */
 export const updateCalendarTask = async (req: any, res: Response) => {
     try {
         const task = await CalendarTask.findById(req.params.id);
         if (!task) return res.status(404).json({ message: 'Calendar task not found' });
+
+        // Security check
         if (task.user.toString() !== req.user._id.toString()) {
             return res.status(401).json({ message: 'Not authorized' });
         }
@@ -57,10 +71,16 @@ export const updateCalendarTask = async (req: any, res: Response) => {
     }
 };
 
+/**
+ * Permanently remove a calendar task.
+ * Includes ownership verification.
+ */
 export const deleteCalendarTask = async (req: any, res: Response) => {
     try {
         const task = await CalendarTask.findById(req.params.id);
         if (!task) return res.status(404).json({ message: 'Calendar task not found' });
+
+        // Security check
         if (task.user.toString() !== req.user._id.toString()) {
             return res.status(401).json({ message: 'Not authorized' });
         }
