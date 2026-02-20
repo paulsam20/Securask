@@ -79,9 +79,9 @@ export default function TaskSection({
             ref={provided.innerRef}
             {...provided.droppableProps}
             className={`
-              flex-1 min-h-[120px] overflow-y-auto rounded-lg transition-all duration-200
+              flex-1 min-h-[120px] overflow-y-auto rounded-lg transition-colors duration-200
               ${snapshot.isDraggingOver
-                ? 'bg-white/50 dark:bg-white/5 ring-2 ring-primary-400/50 dark:ring-primary-500/40' // Highlighting when hovered with a card
+                ? 'bg-white/40 dark:bg-white/10 ring-2 ring-primary-500/30'
                 : ''}
             `}
           >
@@ -94,9 +94,11 @@ export default function TaskSection({
                 </p>
               </div>
             ) : (
-              // Task Grid Layout
-              <div className={`grid gap-3 transition-all duration-300 ${isFullWidth ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'
-                }`}>
+              <div className={`
+                ${isFullWidth
+                  ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3'
+                  : 'flex flex-col'}
+              `}>
                 {tasks.map((task, index) => (
                   <TaskCard
                     key={task.id}
@@ -111,8 +113,6 @@ export default function TaskSection({
                 {provided.placeholder}
               </div>
             )}
-            {/* The placeholder maintains the column height during drops */}
-            {tasks.length > 0 && provided.placeholder}
           </div>
         )}
       </Droppable>
