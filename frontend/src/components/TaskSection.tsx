@@ -17,6 +17,7 @@ interface TaskSectionProps {
   onDeleteTask: (id: string) => void;
   onStatusChange: (id: string, newStatus: 'active' | 'progress' | 'completed') => void;
   onUpdateTask?: (id: string, updates: { title?: string; description?: string; priority?: 'high' | 'medium' | 'low'; dueDate?: string }) => void;
+  onFocus?: (task: { id: string; title: string; description?: string }) => void;
   isFullWidth?: boolean;
 }
 
@@ -39,6 +40,7 @@ export default function TaskSection({
   onDeleteTask,
   onStatusChange,
   onUpdateTask,
+  onFocus,
   isFullWidth = false,
 }: TaskSectionProps) {
   const accent = columnAccent[droppableId] ?? columnAccent.active;
@@ -87,6 +89,7 @@ export default function TaskSection({
                     onDelete={onDeleteTask}
                     onStatusChange={onStatusChange}
                     onUpdateTask={onUpdateTask}
+                    onFocus={onFocus}
                   />
                 ))}
                 {provided.placeholder}

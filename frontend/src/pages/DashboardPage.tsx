@@ -4,6 +4,7 @@ import { DragDropContext, DropResult } from '@hello-pangea/dnd';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import Sidebar from '../components/Sidebar';
 import TaskSection from '../components/TaskSection';
+import FocusMode from '../components/FocusMode';
 import { taskAPI } from '../services/api';
 
 interface Task {
@@ -62,6 +63,7 @@ export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [now, setNow] = useState(() => new Date());
+  const [focusedTask, setFocusedTask] = useState<{ id: string; title: string; description?: string } | null>(null);
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
@@ -182,6 +184,7 @@ export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false
       setError(err.message || 'Failed to update task');
     }
   };
+
 
   const handleUpdateTask = async (
     id: string,
@@ -476,6 +479,7 @@ export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false
                         onDeleteTask={handleDeleteTask}
                         onStatusChange={handleStatusChange}
                         onUpdateTask={handleUpdateTask}
+                        onFocus={setFocusedTask}
                         isFullWidth={currentPage === 'active'}
                       />
                     )}
@@ -487,6 +491,7 @@ export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false
                         onDeleteTask={handleDeleteTask}
                         onStatusChange={handleStatusChange}
                         onUpdateTask={handleUpdateTask}
+                        onFocus={setFocusedTask}
                         isFullWidth={currentPage === 'progress'}
                       />
                     )}
@@ -508,6 +513,20 @@ export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false
           </div>
         </motion.div>
       </main>
+
+      {/* Focus Mode Overlay */}
+      <AnimatePresence>
+        {focusedTask && (
+          <FocusMode
+            task={focusedTask}
+            onComplete={async (taskId) => {
+              await handleStatusChange(taskId, 'completed');
+              setFocusedTask(null);
+            }}
+            onCancel={() => setFocusedTask(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

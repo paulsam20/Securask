@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { StickyNote, Plus, ChevronRight, ChevronDown, X, Palette } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { motion, AnimatePresence } from 'framer-motion';
 import { stickyNotesAPI } from '../services/api';
 
 interface Note {
@@ -116,7 +117,7 @@ export default function StickyNotes({
       };
       setNotes((prev) => {
         const next = [...prev, note].map((n, idx) => ({ ...n, order: idx }));
-        stickyNotesAPI.reorder(next.map((n) => n.id)).catch(() => {});
+        stickyNotesAPI.reorder(next.map((n) => n.id)).catch(() => { });
         return next;
       });
     } catch (e: any) {
@@ -128,7 +129,7 @@ export default function StickyNotes({
     const existing = saveTimersRef.current[id];
     if (existing) window.clearTimeout(existing);
     saveTimersRef.current[id] = window.setTimeout(() => {
-      stickyNotesAPI.update(id, updates).catch(() => {});
+      stickyNotesAPI.update(id, updates).catch(() => { });
       delete saveTimersRef.current[id];
     }, 600);
   };
@@ -156,16 +157,23 @@ export default function StickyNotes({
   return (
     <>
       {/* Sticky-note toggle button (near theme toggle) - hidden when panel open */}
-      {!isOpen && (
-        <button
-          type="button"
-          onClick={togglePanel}
-          className="fixed top-4 right-14 z-50 p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 shadow-sm transition-colors"
-          aria-label="Open sticky notes"
-        >
-          <StickyNote className="w-5 h-5" />
-        </button>
-      )}
+      <AnimatePresence>
+        {!isOpen && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0, x: 20 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            exit={{ opacity: 0, scale: 0, x: 20 }}
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            whileTap={{ scale: 0.9 }}
+            type="button"
+            onClick={togglePanel}
+            className="fixed top-4 right-14 z-50 p-2.5 rounded-full bg-primary-500 text-white shadow-lg shadow-primary-500/30 transition-colors"
+            aria-label="Open sticky notes"
+          >
+            <StickyNote className="w-5 h-5" />
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Right-side slide panel */}
       <div
@@ -174,7 +182,7 @@ export default function StickyNotes({
           w-full sm:w-80 md:w-96
           transform transition-transform duration-300 ease-out
           bg-white/95 dark:bg-gray-900/95 border-l border-gray-200 dark:border-gray-800
-          backdrop-blur-md
+          backdrop-blur-md shadow-2xl
           ${isOpen ? 'translate-x-0' : 'translate-x-full'}
         `}
       >
@@ -209,21 +217,23 @@ export default function StickyNotes({
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between px-4 py-3">
               <div className="min-w-0">
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Drag to re-order. Saved to your account.
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                  Quick notes and reminders.
                 </p>
                 {error && (
                   <p className="text-xs text-red-500 mt-1 truncate">{error}</p>
                 )}
               </div>
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 type="button"
                 onClick={handleAddNote}
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-primary-500 text-white hover:bg-primary-600 transition-colors"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg bg-primary-500 text-white hover:bg-primary-600 shadow-md shadow-primary-500/20 transition-colors"
               >
                 <Plus className="w-3 h-3" />
-                New
-              </button>
+                Add Note
+              </motion.button>
             </div>
 
             <DragDropContext onDragEnd={onDragEnd}>
@@ -232,66 +242,78 @@ export default function StickyNotes({
                   <div
                     ref={providedDroppable.innerRef}
                     {...providedDroppable.droppableProps}
-                    className="flex-1 px-4 pb-4 space-y-3 overflow-y-auto"
+                    className="flex-1 px-4 pb-24 space-y-4 overflow-y-auto custom-scrollbar"
                   >
                     {isLoading && notes.length === 0 && (
-                      <div className="text-sm text-gray-500 dark:text-gray-400 py-4">
-                        Loading notes…
+                      <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full mb-2"
+                        />
+                        <span className="text-sm">Loading notes…</span>
                       </div>
                     )}
-                    {notes.map((note, index) => (
-                      <Draggable key={note.id} draggableId={note.id} index={index}>
-                        {(providedDraggable, snapshotDraggable) => (
-                          <div
-                            ref={providedDraggable.innerRef}
-                            {...providedDraggable.draggableProps}
-                            {...providedDraggable.dragHandleProps}
-                            className={`
-                              rounded-xl border
-                              ${noteCardClasses[note.color]}
-                              shadow-sm px-3 py-2 text-sm text-gray-800 dark:text-gray-100
-                              transition-all duration-150
-                              ${snapshotDraggable.isDragging ? 'shadow-lg scale-[1.02]' : ''}
-                            `}
-                          >
-                            <div className="flex items-center justify-between mb-1">
-                              <div className="flex items-center gap-1 text-[10px] text-gray-500 dark:text-gray-400">
-                                <Palette className="w-3 h-3" />
-                                <span>Color</span>
+                    <AnimatePresence mode="popLayout">
+                      {notes.map((note, index) => (
+                        <Draggable key={note.id} draggableId={note.id} index={index}>
+                          {(providedDraggable, snapshotDraggable) => (
+                            <motion.div
+                              layout
+                              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.2 } }}
+                              whileHover={{ scale: 1.02, rotate: index % 2 === 0 ? 0.5 : -0.5 }}
+                              ref={providedDraggable.innerRef}
+                              {...providedDraggable.draggableProps}
+                              {...providedDraggable.dragHandleProps}
+                              className={`
+                                rounded-2xl border p-4
+                                ${noteCardClasses[note.color]}
+                                shadow-sm text-sm text-gray-800 dark:text-gray-100
+                                transition-all duration-300
+                                ${snapshotDraggable.isDragging ? 'shadow-2xl scale-[1.05] rotate-2 z-50 ring-2 ring-primary-500/50' : 'hover:shadow-lg'}
+                              `}
+                            >
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                  <Palette className="w-3.5 h-3.5" />
+                                  <span>Color</span>
+                                </div>
+                                <select
+                                  value={note.color}
+                                  onChange={(e) => handleChangeColor(note.id, e.target.value as NoteColor)}
+                                  className="text-[10px] font-bold bg-white/40 dark:bg-black/20 border border-white/40 dark:border-white/10 rounded-lg px-2 py-1 outline-none cursor-pointer hover:bg-white/60 dark:hover:bg-black/30 transition-colors"
+                                  aria-label="Sticky note color"
+                                >
+                                  {colorOptions.map((c) => (
+                                    <option key={c.id} value={c.id}>
+                                      {c.label}
+                                    </option>
+                                  ))}
+                                </select>
                               </div>
-                              <select
-                                value={note.color}
-                                onChange={(e) => handleChangeColor(note.id, e.target.value as NoteColor)}
-                                className="text-[10px] bg-white/60 dark:bg-black/20 border border-white/40 dark:border-white/10 rounded px-1 py-0.5 outline-none"
-                                aria-label="Sticky note color"
-                              >
-                                {colorOptions.map((c) => (
-                                  <option key={c.id} value={c.id}>
-                                    {c.label}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                            <textarea
-                              value={note.text}
-                              onChange={(e) => handleChangeNote(note.id, e.target.value)}
-                              className="w-full bg-transparent resize-none outline-none text-xs leading-snug placeholder:text-gray-400 dark:placeholder:text-gray-500"
-                              rows={3}
-                              placeholder="Write a quick note…"
-                            />
-                            <div className="flex justify-end mt-1">
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteNote(note.id)}
-                                className="text-[10px] text-gray-400 hover:text-red-500"
-                              >
-                                Remove
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </Draggable>
-                    ))}
+                              <textarea
+                                value={note.text}
+                                onChange={(e) => handleChangeNote(note.id, e.target.value)}
+                                className="w-full bg-transparent resize-none outline-none text-[13px] font-medium leading-relaxed placeholder:text-gray-400/70 dark:placeholder:text-gray-500/70"
+                                rows={4}
+                                placeholder="What's on your mind?"
+                              />
+                              <div className="flex justify-end mt-2">
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteNote(note.id)}
+                                  className="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-red-500 transition-colors"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </motion.div>
+                          )}
+                        </Draggable>
+                      ))}
+                    </AnimatePresence>
                     {providedDroppable.placeholder}
                   </div>
                 )}
