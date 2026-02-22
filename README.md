@@ -8,10 +8,56 @@ A modern, **Secure Task Management Dashboard** designed to improve productivity,
 
 ## Dashboard Overview:
 
-Securask provides a clean and structured interface divided into four main sections for maximum productivity and usability.
+Securask provides a clean and structured interface divided into four main sections for maximum productivity and usability, featuring a seamless Dark/Light mode toggle for a comfortable and personalized user experience.
 
 ---
+## Screenshots
+---
+Register Page:
 
+<img width="1366" height="604" alt="image" src="https://github.com/user-attachments/assets/7072f8c2-5e6a-40af-bb34-66fd07c01867" />
+
+Login Page:
+
+<img width="1366" height="598" alt="image" src="https://github.com/user-attachments/assets/78d84d72-4cba-4d0c-b7b2-1521f1b675b6" />
+
+Dashboard Page: 
+
+<img width="1366" height="606" alt="image" src="https://github.com/user-attachments/assets/d07b1f45-8f40-4d0b-9bfa-27687a87ee37" />
+
+Focus Mode:
+
+<img width="1365" height="597" alt="image" src="https://github.com/user-attachments/assets/b8b05185-6a2d-47a7-b2f3-626496e559f9" />
+
+Pomodoro Timer (Focus Mode):
+
+<img width="1366" height="591" alt="image" src="https://github.com/user-attachments/assets/f466284c-47ad-484c-99a1-6e73639566e0" />
+
+Sticky Notes (right side panel):
+
+<img width="1366" height="596" alt="image" src="https://github.com/user-attachments/assets/c41d8cd4-475f-493c-8ad3-76f1a9959229" />
+
+Overview of right side panel:
+
+<img width="1361" height="591" alt="image" src="https://github.com/user-attachments/assets/bb3b5ff7-5654-447a-b6c1-bc1ce0b13393" />
+
+Calender Page:
+
+<img width="1366" height="604" alt="image" src="https://github.com/user-attachments/assets/76944951-a2a4-4dbe-b6b4-c5f764df1e21" />
+
+Active Task Page:
+
+<img width="1365" height="651" alt="image" src="https://github.com/user-attachments/assets/08966e33-e71a-429f-a28a-5d11dc2883cb" />
+
+In Progress Task Page:
+
+<img width="1366" height="598" alt="image" src="https://github.com/user-attachments/assets/614b3062-8147-4019-8044-6db0d7ff9aac" />
+
+Completed Task Page:
+
+<img width="1366" height="603" alt="image" src="https://github.com/user-attachments/assets/95ae42ec-f917-4d4d-aa30-7560ae3f22ee" />
+
+---
 ## Right Panel – Sticky Notes
 
 - Create quick reminder notes  
@@ -23,7 +69,8 @@ Securask provides a clean and structured interface divided into four main sectio
 
 ## Center – Task Management Board
 
-- Create, edit, and delete tasks  
+- Create, edit, and delete tasks
+- A focus mode has been created to increase productivity and to reduce distractions. 
 - Assign task status:
   - Active  
   - In Progress  
@@ -72,7 +119,8 @@ Securask provides a clean and structured interface divided into four main sectio
 - JWT-based session management  
 - Password hashing using bcrypt  
 - Sticky notes integration  
-- Real-time task tracking  
+- Real-time task tracking
+- Focus mode to reduce the distractions
 - Calendar-based reminder system  
 - Responsive dark/light theme  
 - Smooth UI animations using Framer Motion  
@@ -98,7 +146,7 @@ Securask provides a clean and structured interface divided into four main sectio
 
 ---
 
-## 📦 Third-Party Packages Used & Why
+## Third-Party Packages Used & Why
 
 ### Frontend Packages
 
@@ -213,27 +261,31 @@ http://localhost:5174
 You can now:
 
 - Register and login securely
-- Hover over texts to see the magic 
-- Create and manage tasks  
+- Use a uppercase, lowercase, special character and a number for password creation
+- Explore micro-interactions by hovering over text, icons, and cards for smooth animated feedback
+- Create, manage an delete tasks
+- Activate Focus Mode using the circular target icon to improve concentration and productivity
 - Drag tasks across workflow columns  
-- Use sticky notes for reminders  
+- Use sticky notes for reminders
 - Add and manage calendar-based reminders  
-- Monitor task counts in real time  
+- Monitor task counts in real time
+- Stay updated with the real-time date and time at the top, and monitor your progress seamlessly through the interactive progress bar
 - Logout securely  
 
 ---
 
-## 🚀 If I Had More Time – Future Improvements
+## If I Had More Time – Future Improvements
 
-- Email & push notification reminders  
+- Email & push notification reminders
+- Integrate Firebase Authentication for real-time email-based login
 - Role-based dashboards (Admin / Team Member)  
 - Team collaboration with shared task boards  
 - File attachment support for tasks  
 - Advanced analytics with productivity graphs  
 - Two-factor authentication (2FA) for enhanced security  
 - Offline support using service workers  
-- Mobile app version using React Native  
+- Mobile app version using React Native 
 
 ---
 
-**Built with ❤️ for secure productivity and efficient workflow management.**
+**Built with ❤️ for secure productivity and efficient workflow management!**
