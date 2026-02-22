@@ -274,6 +274,13 @@ You can now:
 
 ---
 
+## Sample User
+User:
+Email: test@example.com
+Password: Password123!
+
+---
+
 ## If I Had More Time – Future Improvements
 
 - Email & push notification reminders
