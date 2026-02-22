@@ -1,5 +1,5 @@
 import { useState, memo } from 'react';
-import { Trash2, CheckCircle2, Clock, GripVertical, Pencil, Target } from 'lucide-react';
+import { Trash2, CheckCircle2, Clock, GripVertical, Pencil, Target, X } from 'lucide-react';
 import { Draggable } from '@hello-pangea/dnd';
 import { motion } from 'framer-motion';
 
@@ -100,7 +100,7 @@ const TaskCard = ({
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
             className={`
               ${styles.bg} border rounded-xl p-4
-              backdrop-blur-sm transition-colors duration-300
+              backdrop-blur-sm transition-colors duration-300 group
               ${snapshot.isDragging ? 'ring-2 ring-primary-500/50 z-50' : `hover:border-primary-500/30 dark:text-gray-100 flex flex-col gap-3`}
             `}
           >
@@ -146,17 +146,47 @@ const TaskCard = ({
                   )}
                 </div>
                 {!isEditing && (
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
                     {onFocus && status !== 'completed' && (
-                      <button onClick={() => onFocus({ id, title, description })} className="p-1.5 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded-md">
-                        <Target className="w-4 h-4 text-gray-400" />
+                      <button
+                        onClick={() => onFocus({ id, title, description })}
+                        className="p-1.5 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded-md transition-colors"
+                        title="Focus Mode"
+                      >
+                        <Target className="w-4 h-4 text-primary-600 dark:text-primary-400" />
                       </button>
                     )}
                     {isEditable && (
-                      <button onClick={() => setIsEditing(true)} className="p-1.5 hover:bg-white/80 dark:hover:bg-gray-700 rounded-md">
-                        <Pencil className="w-4 h-4 text-gray-400" />
+                      <button
+                        onClick={() => setIsEditing(true)}
+                        className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                        title="Edit Task"
+                      >
+                        <Pencil className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                       </button>
                     )}
+                  </div>
+                )}
+                {isEditing && (
+                  <div className="flex flex-col gap-1">
+                    <button
+                      onClick={handleSaveEdit}
+                      className="p-1.5 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-md transition-colors"
+                      title="Save"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsEditing(false);
+                        setEditTitle(title);
+                        setEditDescription(description ?? '');
+                      }}
+                      className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-md transition-colors"
+                      title="Cancel"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
                   </div>
                 )}
               </div>
@@ -179,12 +209,20 @@ const TaskCard = ({
 
               <div className="flex items-center gap-1">
                 {onStatusChange && status !== 'completed' && (
-                  <button onClick={() => onStatusChange(id, getNextStatus())} className="p-1.5 hover:bg-white dark:hover:bg-gray-700 rounded-md">
-                    <CheckCircle2 className="w-4 h-4 text-gray-400" />
+                  <button
+                    onClick={() => onStatusChange(id, getNextStatus())}
+                    className="p-1.5 hover:bg-white dark:hover:bg-gray-700 rounded-md transition-colors"
+                    title="Mark Next Status"
+                  >
+                    <CheckCircle2 className="w-4 h-4 text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400" />
                   </button>
                 )}
-                <button onClick={() => onDelete(id)} className="p-1.5 hover:bg-white dark:hover:bg-gray-700 rounded-md">
-                  <Trash2 className="w-4 h-4 text-gray-400 hover:text-red-500" />
+                <button
+                  onClick={() => onDelete(id)}
+                  className="p-1.5 hover:bg-white dark:hover:bg-gray-700 rounded-md transition-colors text-gray-500 dark:text-gray-400"
+                  title="Delete Task"
+                >
+                  <Trash2 className="w-4 h-4 hover:text-red-500 transition-colors" />
                 </button>
               </div>
             </div>
