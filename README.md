@@ -174,6 +174,18 @@ Used as an ODM (Object Data Modeling) library to interact with MongoDB in a stru
 
 ---
 
+## Swagger API Documentation:
+The application includes fully interactive API documentation powered by Swagger UI for real-time endpoint testing. 
+Link: https://securask.onrender.com/api-docs/
+
+Authentication & Task:
+
+<img width="1350" height="499" alt="image" src="https://github.com/user-attachments/assets/d5e928b4-4748-47b9-8f5a-964b2661b14f" />
+
+Sticky Notes & Calender Tasks:
+
+<img width="1347" height="589" alt="image" src="https://github.com/user-attachments/assets/5547f12d-05db-40be-88e1-dc2dba1d0573" />
+
 # Installation & Setup
 
 Follow the steps below to run the project locally.
@@ -295,4 +307,4 @@ Password: Password123!
 
 ---
 
-**Built with ❤️ for secure productivity and efficient workflow management!**
+**Engineered for focus. Secured by design. Optimized for productivity. 🛡️**
