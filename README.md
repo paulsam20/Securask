@@ -132,7 +132,7 @@ Completed Task Page:
 
 ### Frontend:
 - React.js (User Interface)
-- Axios (API communication)
+- Custom API communication
 - CSS (Styling)
 - SessionStorage (Authentication handling)
 - Framer Motion (UI animations)
@@ -150,8 +150,8 @@ Completed Task Page:
 
 ### Frontend Packages
 
-**Axios**  
-Used for handling HTTP requests between frontend and backend efficiently. It simplifies API communication and error handling.
+**Custom API**  
+A centralized custom API service layer is used to efficiently handle frontend–backend communication with structured request management and consistent error handling.
 
 **Framer Motion**  
 Used to implement smooth animations and transitions within the dashboard, enhancing user experience without compromising performance.
@@ -302,7 +302,8 @@ Password: Password123!
 - File attachment support for tasks  
 - Advanced analytics with productivity graphs  
 - Two-factor authentication (2FA) for enhanced security  
-- Offline support using service workers  
+- Offline support using service workers
+- Usage of axios for production ready app
 - Mobile app version using React Native 
 
 ---
