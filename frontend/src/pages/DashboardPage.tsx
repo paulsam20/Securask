@@ -395,6 +395,12 @@ export default function DashboardPage({ userEmail, onLogout, isNotesOpen = false
         {focusedTask && (
           <FocusMode
             task={focusedTask}
+            onStart={async (taskId) => {
+              const task = tasks.find(t => t.id === taskId);
+              if (task && task.status === 'active') {
+                await handleStatusChange(taskId, 'progress');
+              }
+            }}
             onComplete={async (taskId) => {
               await handleStatusChange(taskId, 'completed');
               setFocusedTask(null);

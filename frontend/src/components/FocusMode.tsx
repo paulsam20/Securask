@@ -8,6 +8,7 @@ interface FocusModeProps {
         title: string;
         description?: string;
     };
+    onStart?: (taskId: string) => void;
     onComplete: (taskId: string) => void;
     onCancel: () => void;
 }
@@ -24,7 +25,7 @@ const DURATIONS = [
  * Implements a Pomodoro-style distraction-free timer for a specific task.
  * Features customizable durations, focus/break cycles, and status-aware styling.
  */
-export default function FocusMode({ task, onComplete, onCancel }: FocusModeProps) {
+export default function FocusMode({ task, onStart, onComplete, onCancel }: FocusModeProps) {
     // Component State
     const [isSettingUp, setIsSettingUp] = useState(true); // Phase 1: Choosing duration
     const [selectedMinutes, setSelectedMinutes] = useState(25); // User-selected goal
@@ -32,6 +33,7 @@ export default function FocusMode({ task, onComplete, onCancel }: FocusModeProps
     const [isActive, setIsActive] = useState(false); // Timer play/pause state
     const [isBreak, setIsBreak] = useState(false); // Focus vs Break mode
     const [sessionsCompleted, setSessionsCompleted] = useState(0); // Pomodoro cycle counter
+    const [showConfirmComplete, setShowConfirmComplete] = useState(false); // Completion confirmation phase
 
     /**
      * Navigation: Transitions from setup screen to active timer
@@ -40,6 +42,7 @@ export default function FocusMode({ task, onComplete, onCancel }: FocusModeProps
         setTimeLeft(selectedMinutes * 60);
         setIsSettingUp(false);
         setIsActive(true);
+        onStart?.(task.id);
     };
 
     /**
@@ -310,7 +313,7 @@ export default function FocusMode({ task, onComplete, onCancel }: FocusModeProps
                                 <motion.button
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.9 }}
-                                    onClick={() => onComplete(task.id)}
+                                    onClick={() => setShowConfirmComplete(true)}
                                     className="p-4 rounded-2xl bg-white/5 text-gray-400 hover:text-emerald-500 hover:bg-white/10 transition-all border border-white/5"
                                     title="Mark as completed & exit"
                                 >
@@ -338,6 +341,50 @@ export default function FocusMode({ task, onComplete, onCancel }: FocusModeProps
                     )}
                 </AnimatePresence>
             </div>
+
+            {/* Completion Confirmation Overlay */}
+            <AnimatePresence>
+                {showConfirmComplete && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 z-50 flex items-center justify-center bg-gray-950/90 backdrop-blur-md p-6"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            className="w-full max-w-md bg-gray-900 border border-white/10 rounded-[2.5rem] p-10 text-center shadow-2xl"
+                        >
+                            <div className="w-20 h-20 bg-emerald-500/10 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-emerald-500/20">
+                                <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+                            </div>
+                            <h3 className="text-3xl font-black text-white mb-3 tracking-tight">Great Work!</h3>
+                            <p className="text-gray-400 text-lg mb-10">Did you successfully complete this task?</p>
+
+                            <div className="flex flex-col gap-3">
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={() => onComplete(task.id)}
+                                    className="w-full py-5 rounded-2xl bg-emerald-500 text-white font-black text-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:bg-emerald-600 transition-colors"
+                                >
+                                    Yes, I'm Done
+                                </motion.button>
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={() => setShowConfirmComplete(false)}
+                                    className="w-full py-5 rounded-2xl bg-white/5 text-gray-400 font-bold hover:text-white hover:bg-white/10 transition-all"
+                                >
+                                    Not quite yet
+                                </motion.button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 }
